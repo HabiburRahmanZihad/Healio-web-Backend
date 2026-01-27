@@ -1,0 +1,82 @@
+import { NextFunction, Request, Response } from "express";
+import { auth } from "../lib/auth";
+
+// ================================
+// User Roles (MATCH PRISMA + AUTH)
+// ================================
+export enum UserRole {
+    ADMIN = "ADMIN",
+    SELLER = "SELLER",
+    CUSTOMER = "CUSTOMER",
+}
+
+// ================================
+// Extend Express Request
+// ================================
+declare global {
+    namespace Express {
+        interface Request {
+            user?: {
+                id: string;
+                name: string;
+                email: string;
+                role: UserRole;
+                emailVerified: boolean;
+                status: "ACTIVE" | "BLOCKED";
+            };
+        }
+    }
+}
+
+// ================================
+// Authorization Middleware
+// ================================
+const authorize = (...roles: UserRole[]) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            // Get session from Better Auth
+            const session = await auth.api.getSession({
+                headers: req.headers as any,
+            });
+
+            // Not authenticated
+            if (!session || !session.user) {
+                return res.status(401).json({ message: "Unauthorized" });
+            }
+
+            // Email not verified
+            if (!session.user.emailVerified) {
+                return res.status(403).json({ message: "Email not verified" });
+            }
+
+            // Blocked user
+            if (session.user.status === "BLOCKED") {
+                return res.status(403).json({ message: "User is blocked by admin" });
+            }
+
+            // Attach user to request
+            req.user = {
+                id: session.user.id,
+                name: session.user.name,
+                email: session.user.email,
+                role: session.user.role as UserRole,
+                emailVerified: session.user.emailVerified,
+                status: session.user.status as "ACTIVE" | "BLOCKED",
+            };
+
+            // Role-based access control
+            if (roles.length && !roles.includes(req.user.role)) {
+                return res.status(403).json({ message: "Forbidden" });
+            }
+
+            next();
+        } catch (error) {
+            return res.status(500).json({
+                message: "Internal Server Error",
+                details: (error as Error).message,
+            });
+        }
+    };
+};
+
+export default authorize;
