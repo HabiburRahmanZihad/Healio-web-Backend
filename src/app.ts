@@ -5,6 +5,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
 import errorHandler from "./middleware/globalErrorHandler";
 import { notFound } from "./middleware/notFound";
+import { categoryRouter } from "./modules/category/category.router";
 
 const app = express();
 
@@ -30,7 +31,7 @@ app.all('/api/auth/{*any}', toNodeHandler(auth));
 // ================================
 // Application Routes
 // ================================
-
+app.use("/api/categories", categoryRouter);
 
 // ================================
 // Health Check

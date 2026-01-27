@@ -32,7 +32,7 @@ export const auth = betterAuth({
         user: {
             create: {
                 before: async (user) => {
-                    if (user.role === "ADMIN") {
+                    if (user.role === "ADMIN" && process.env.ALLOW_ADMIN_SIGNUP !== "true") {
                         throw new Error("ADMIN signup is not allowed");
                     }
 
@@ -93,9 +93,9 @@ export const auth = betterAuth({
                 to: user.email!,
                 subject: "Verify your email address",
                 html: `
-          <p>Hello ${user.name},</p>
-          <p>Please verify your email address:</p>
-          <a href="${url}">Verify Email</a>
+            <p>Hello ${user.name},</p>
+            <p>Please verify your email address:</p>
+            <a href="${url}">Verify Email</a>
         `,
             });
         },
