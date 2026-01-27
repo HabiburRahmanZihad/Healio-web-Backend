@@ -1,0 +1,13 @@
+model Order {
+    id         String @id @default(uuid())
+    customerId String
+    customer   User   @relation(fields: [customerId], references: [id])
+
+    items      Json
+    totalPrice Float
+    address    String
+    status     String   @default("PLACED")
+    createdAt  DateTime @default(now())
+
+    @@map("orders")
+}
