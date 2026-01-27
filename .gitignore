@@ -1,0 +1,12 @@
+node_modules
+.env
+dist
+*.log
+*.sqlite
+*.sqlite-journal
+prisma/migrations
+*.tsbuildinfo
+.vscode
+.DS_Store
+.idea
+/generated/prisma
