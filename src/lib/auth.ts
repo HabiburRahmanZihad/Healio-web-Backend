@@ -26,23 +26,46 @@ export const auth = betterAuth({
 
     trustedOrigins: [process.env.APP_URL!],
 
+    // 🔥🔥🔥 THIS IS THE KEY PART 🔥🔥🔥
+    // HARD BLOCK ADMIN FROM PUBLIC SIGNUP
+    databaseHooks: {
+        user: {
+            create: {
+                before: async (user) => {
+                    if (user.role === "ADMIN") {
+                        throw new Error("ADMIN signup is not allowed");
+                    }
+
+                    // extra safety: force default
+                    if (!user.role) {
+                        user.role = "CUSTOMER";
+                    }
+
+                    return {
+                        data: user,
+                    };
+                },
+            },
+        },
+    },
+
     // ================================
-    // User extra fields (MediStore)
+    // User extra fields
     // ================================
     user: {
         additionalFields: {
             role: {
                 type: "string",
-                default: "CUSTOMER", // ✅ matches Prisma
                 required: false,
             },
+
             phone: {
                 type: "string",
                 required: false,
             },
+
             status: {
                 type: "string",
-                default: "ACTIVE",
                 required: false,
             },
         },
@@ -65,22 +88,16 @@ export const auth = betterAuth({
         autoSignInAfterVerification: true,
 
         sendVerificationEmail: async ({ user, url }) => {
-            try {
-                await transporter.sendMail({
-                    from: `"MediStore" <no-reply@medistore.com>`,
-                    to: user.email!, // ✅ dynamic user email
-                    subject: "Verify your email address",
-                    html: `
-            <p>Hello ${user.name},</p>
-            <p>Please verify your email address by clicking the link below:</p>
-            <a href="${url}">Verify Email</a>
-            <p>If you did not create this account, please ignore this email.</p>
-            `,
-                });
-            } catch (error) {
-                console.error("Email verification error:", error);
-                throw new Error("Failed to send verification email");
-            }
+            await transporter.sendMail({
+                from: `"Healio" <no-reply@healio.com>`,
+                to: user.email!,
+                subject: "Verify your email address",
+                html: `
+          <p>Hello ${user.name},</p>
+          <p>Please verify your email address:</p>
+          <a href="${url}">Verify Email</a>
+        `,
+            });
         },
     },
 

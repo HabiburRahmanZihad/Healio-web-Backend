@@ -49,19 +49,22 @@ const authorize = (...roles: UserRole[]) => {
                 return res.status(403).json({ message: "Email not verified" });
             }
 
+            // Cast user to any to access additional fields or use a specific type
+            const user = session.user as any;
+
             // Blocked user
-            if (session.user.status === "BLOCKED") {
+            if (user.status === "BLOCKED") {
                 return res.status(403).json({ message: "User is blocked by admin" });
             }
 
             // Attach user to request
             req.user = {
-                id: session.user.id,
-                name: session.user.name,
-                email: session.user.email,
-                role: session.user.role as UserRole,
-                emailVerified: session.user.emailVerified,
-                status: session.user.status as "ACTIVE" | "BLOCKED",
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role as UserRole,
+                emailVerified: user.emailVerified,
+                status: user.status as "ACTIVE" | "BLOCKED",
             };
 
             // Role-based access control
