@@ -25,7 +25,7 @@ export const auth = betterAuth({
         provider: "postgresql",
     }),
 
-    trustedOrigins: [config.app_url],
+    trustedOrigins: config.trusted_origins,
 
     // 🔥🔥🔥 THIS IS THE KEY PART 🔥🔥🔥
     // HARD BLOCK ADMIN FROM PUBLIC SIGNUP

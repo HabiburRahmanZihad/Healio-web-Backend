@@ -12,6 +12,12 @@ export const config = {
         url: process.env.BETTER_AUTH_URL,
     },
     app_url: process.env.APP_URL || "http://localhost:3000",
+    trusted_origins: [
+        process.env.APP_URL,
+        "http://localhost:3000",
+        "http://localhost:5173", // Common Vite port
+        ...(process.env.TRUSTED_ORIGINS ? process.env.TRUSTED_ORIGINS.split(",") : [])
+    ].filter(Boolean) as string[],
     smtp: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
