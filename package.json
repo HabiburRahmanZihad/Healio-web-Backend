@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx tsx watch src/server.ts",
-    "start": "npx tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "prisma generate && tsc",
     "seed:admin": "npx tsx  src/scripts/seedAdmin.ts"
   },
   "repository": {
