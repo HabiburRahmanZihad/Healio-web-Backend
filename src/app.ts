@@ -31,23 +31,10 @@ app.use(cors({
 app.use(express.json());
 
 // ================================
-// Better Auth Routes
+// Better Auth Routes & Aliases
 // ================================
-app.use("/api/auth", toNodeHandler(auth));
 
-// ================================
-// Application Routes
-// ================================
-app.use("/api/categories", categoryRouter);
-app.use("/api/medicines", medicineRouter);
-app.use("/api/seller/medicines", sellerMedicineRouter);
-app.use("/api/orders", orderRouter);
-app.use("/api/seller/orders", sellerOrderRouter);
-app.use("/api/admin", adminRouter);
-app.use("/api/reviews", reviewRouter);
-app.use("/api/users", userRouter);
-
-// Auth Aliases per Readme
+// Aliases must come BEFORE the general handler to avoid shadowing
 app.get("/api/auth/me", authMiddleware(), getMyProfile);
 
 app.post("/api/auth/register", async (req: Request, res: Response) => {
@@ -65,6 +52,20 @@ app.post("/api/auth/login", async (req: Request, res: Response) => {
     });
     res.json(result);
 });
+
+app.use("/api/auth", toNodeHandler(auth));
+
+// ================================
+// Application Routes
+// ================================
+app.use("/api/categories", categoryRouter);
+app.use("/api/medicines", medicineRouter);
+app.use("/api/seller/medicines", sellerMedicineRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/seller/orders", sellerOrderRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/reviews", reviewRouter);
+app.use("/api/users", userRouter);
 
 // ================================
 // Health Check
