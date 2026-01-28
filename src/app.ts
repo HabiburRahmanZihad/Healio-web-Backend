@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 
@@ -50,7 +50,7 @@ app.use("/api/users", userRouter);
 // Auth Aliases per Readme
 app.get("/api/auth/me", authMiddleware(), getMyProfile);
 
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", async (req: Request, res: Response) => {
     // Proxy to better-auth sign-up
     const result = await auth.api.signUpEmail({
         body: req.body,
@@ -58,7 +58,7 @@ app.post("/api/auth/register", async (req, res) => {
     res.json(result);
 });
 
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", async (req: Request, res: Response) => {
     // Proxy to better-auth sign-in
     const result = await auth.api.signInEmail({
         body: req.body,
@@ -69,14 +69,14 @@ app.post("/api/auth/login", async (req, res) => {
 // ================================
 // Health Check
 // ================================
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: Request, res: Response) => {
     res.status(200).send("OK");
 });
 
 // ================================
 // Root Route
 // ================================
-app.get("/", (_req, res) => {
+app.get("/", (_req: Request, res: Response) => {
     res.send("🚀 Helio Web API is running");
 });
 

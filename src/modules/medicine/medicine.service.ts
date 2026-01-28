@@ -96,7 +96,7 @@ export const MedicineService = {
         const totalReviews = medicine.reviews.length;
         const averageRating =
             totalReviews > 0
-                ? medicine.reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews
+                ? medicine.reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / totalReviews
                 : 0;
 
         return {

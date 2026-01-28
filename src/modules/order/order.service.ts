@@ -8,7 +8,7 @@ export const OrderService = {
         address: string;
     }) => {
         // Start a transaction to ensure stock reduction
-        return prisma.$transaction(async (tx) => {
+        return prisma.$transaction(async (tx: any) => {
             // 1. Create the order
             const order = await tx.order.create({
                 data,
@@ -43,7 +43,7 @@ export const OrderService = {
             where: { sellerId },
             select: { id: true }
         });
-        const sellerMedicineIds = sellerMedicines.map(m => m.id);
+        const sellerMedicineIds = sellerMedicines.map((m: any) => m.id);
 
         if (sellerMedicineIds.length === 0) return [];
 
@@ -60,9 +60,9 @@ export const OrderService = {
         });
 
         // Filter in memory because of Json structure (items)
-        return orders.filter(order => {
+        return orders.filter((order: any) => {
             const items = order.items as any[];
-            return items.some(item => sellerMedicineIds.includes(item.medicineId));
+            return items.some((item: any) => sellerMedicineIds.includes(item.medicineId));
         });
     },
 
@@ -108,7 +108,7 @@ export const OrderService = {
             where: { sellerId },
             select: { id: true }
         });
-        const sellerMedicineIds = sellerMedicines.map(m => m.id);
+        const sellerMedicineIds = sellerMedicines.map((m: any) => m.id);
         const items = order.items as any[];
         const hasOwnership = items.some(item => sellerMedicineIds.includes(item.medicineId));
 
@@ -128,18 +128,18 @@ export const OrderService = {
             where: { sellerId },
             select: { id: true },
         });
-        const medicineIds = medicines.map((m) => m.id);
+        const medicineIds = medicines.map((m: any) => m.id);
 
         const allOrders = await prisma.order.findMany({
             where: { status: "DELIVERED" },
         });
 
-        const sellerOrders = allOrders.filter((order) => {
+        const sellerOrders = allOrders.filter((order: any) => {
             const items = order.items as any[];
-            return items.some((item) => medicineIds.includes(item.medicineId));
+            return items.some((item: any) => medicineIds.includes(item.medicineId));
         });
 
-        const totalRevenue = sellerOrders.reduce((acc, order) => acc + order.totalPrice, 0);
+        const totalRevenue = sellerOrders.reduce((acc: number, order: any) => acc + order.totalPrice, 0);
 
         return {
             totalMedicines: medicines.length,
@@ -149,7 +149,7 @@ export const OrderService = {
     },
 
     cancelOrder: async (id: string, customerId: string) => {
-        return prisma.$transaction(async (tx) => {
+        return prisma.$transaction(async (tx: any) => {
             const order = await tx.order.findUnique({
                 where: { id },
             });
