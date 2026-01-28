@@ -1,12 +1,12 @@
-import "dotenv/config";
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import { PrismaClient } from '../../generated/prisma';
+import { config } from '../config';
 
 // ================================
 // Database Connection Configuration
 // ================================
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = config.database_url;
 
 if (!databaseUrl) {
     console.error("❌ ERROR: DATABASE_URL environment variable is MISSING.");
@@ -16,7 +16,7 @@ if (!databaseUrl) {
 const pool = new pg.Pool({
     connectionString: databaseUrl,
     // On Render/Production, SSL is often required
-    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+    ssl: config.env === "production" ? { rejectUnauthorized: false } : false
 });
 
 // Initialize Prisma Client with PostgreSQL adapter

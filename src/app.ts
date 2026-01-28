@@ -14,13 +14,27 @@ import { userRouter } from "./modules/user/user.router";
 import { getMyProfile } from "./modules/user/user.controller";
 import authMiddleware from "./middleware/authentication";
 
+import { config } from "./config";
+
 const app = express();
 
 // ================================
 // CORS Configuration
 // ================================
+const allowedOrigins = [
+    config.app_url,
+    "http://localhost:3000", // Keep local dev accessible
+    "https://healio-web.vercel.app" // Example Frontend Production URL
+];
+
 app.use(cors({
-    origin: process.env.APP_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 }))

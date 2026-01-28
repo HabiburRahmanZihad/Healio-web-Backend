@@ -1,8 +1,9 @@
 import { Server } from "http";
 import app from "./app";
 import { prisma } from "./lib/prisma";
+import { config } from "./config";
 
-const PORT = process.env.PORT || 5000;
+const PORT = config.port;
 let server: Server;
 
 async function main() {
@@ -10,9 +11,12 @@ async function main() {
         await prisma.$connect();
         console.log("✅ Database connection established.");
 
-        server = app.listen(PORT, () => {
-            console.log(`🚀 Server is running on port ${PORT}`);
+        server = app.listen(PORT, "0.0.0.0", () => {
+            console.log(`🚀 Server is running on port ${PORT} [${config.env.toUpperCase()}]`);
             console.log(`📡 Health Check: http://localhost:${PORT}/health`);
+            if (config.env === "production") {
+                console.log(`🌍 Public URL: ${config.better_auth.url}`);
+            }
         });
 
         // ================================
