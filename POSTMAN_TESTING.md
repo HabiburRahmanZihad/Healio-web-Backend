@@ -26,6 +26,43 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 
 ---
 
+## 🚀 Quick API Reference
+
+| Method | Endpoint | Description | Access/Role |
+| :--- | :--- | :--- | :--- |
+| **AUTH** | | | |
+| `POST` | `/api/auth/register` | Create a new account | Public |
+| `POST` | `/api/auth/login` | Secure user login | Public |
+| `GET` | `/api/auth/me` | Get current session data | Authenticated |
+| **CATEGORIES** | | | |
+| `GET` | `/api/categories` | List all categories | Public |
+| `POST` | `/api/categories` | Add a new category | Admin |
+| `DELETE` | `/api/categories/:id` | Remove a category | Admin |
+| **MEDICINES** | | | |
+| `GET` | `/api/medicines` | Query medicines (search/filter) | Public |
+| `GET` | `/api/medicines/:id` | Get detailed medicine info | Public |
+| `POST` | `/api/medicines` | Add new inventory items | Seller |
+| `PUT` | `/api/medicines/:id` | Update stock/price/details | Seller (Own) |
+| `DELETE` | `/api/medicines/:id`| Remove inventory items | Seller (Own) |
+| **ORDERS** | | | |
+| `POST` | `/api/orders` | Checkout and place order | Customer |
+| `GET` | `/api/orders` | View order history | Auth (Role based) |
+| `GET` | `/api/orders/:id` | View specific order details | Auth |
+| `PATCH` | `/api/orders/:id/status`| Update delivery status | Seller/Admin |
+| `PATCH` | `/api/orders/:id/cancel`| Cancel a pending order | Customer (Own) |
+| `GET` | `/api/orders/seller/stats`| View sales analytics | Seller |
+| **REVIEWS** | | | |
+| `GET` | `/api/reviews/:medicineId`| See all medicine feedback | Public |
+| `POST` | `/api/reviews` | Submit product review | Customer |
+| **USERS/ADMIN** | | | |
+| `GET` | `/api/users/me` | Fetch active user profile | Authenticated |
+| `PATCH` | `/api/users/me` | Update personal profile | Authenticated |
+| `GET` | `/api/admin/users` | List all system users | Admin |
+| `PATCH` | `/api/admin/users/:id` | Block/Unblock a user | Admin |
+| `GET` | `/api/admin/stats` | System-wide analytics | Admin |
+
+---
+
 ## 🔑 Authentication (Better Auth)
 
 ### 1. Register User
