@@ -6,6 +6,13 @@ import { auth } from "./lib/auth";
 import errorHandler from "./middleware/globalErrorHandler";
 import { notFound } from "./middleware/notFound";
 import { categoryRouter } from "./modules/category/category.router";
+import { medicineRouter } from "./modules/medicine/medicine.router";
+import { orderRouter } from "./modules/order/order.router";
+import { adminRouter } from "./modules/admin/admin.router";
+import { reviewRouter } from "./modules/review/review.router";
+import { userRouter } from "./modules/user/user.router";
+import { getMyProfile } from "./modules/user/user.controller";
+import authMiddleware from "./middleware/authentication";
 
 const app = express();
 
@@ -32,6 +39,30 @@ app.all('/api/auth/{*any}', toNodeHandler(auth));
 // Application Routes
 // ================================
 app.use("/api/categories", categoryRouter);
+app.use("/api/medicines", medicineRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/reviews", reviewRouter);
+app.use("/api/users", userRouter);
+
+// Auth Aliases per Readme
+app.get("/api/auth/me", authMiddleware(), getMyProfile);
+
+app.post("/api/auth/register", async (req, res) => {
+    // Proxy to better-auth sign-up
+    const result = await auth.api.signUpEmail({
+        body: req.body,
+    });
+    res.json(result);
+});
+
+app.post("/api/auth/login", async (req, res) => {
+    // Proxy to better-auth sign-in
+    const result = await auth.api.signInEmail({
+        body: req.body,
+    });
+    res.json(result);
+});
 
 // ================================
 // Health Check

@@ -64,8 +64,8 @@ export const auth = betterAuth({
                 required: false,
             },
 
-            status: {
-                type: "string",
+            isBlocked: {
+                type: "boolean",
                 required: false,
             },
         },

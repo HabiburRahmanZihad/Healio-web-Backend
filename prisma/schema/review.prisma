@@ -1,13 +1,13 @@
 model Review {
-    id        String   @id @default(uuid())
+    id        String   @id @default(uuid()) @map("review_id")
     rating    Int
     comment   String
-    createdAt DateTime @default(now())
+    createdAt DateTime @default(now()) @map("created_at")
 
-    userId String
+    userId String @map("user_id")
     user   User   @relation(fields: [userId], references: [id])
 
-    medicineId String
+    medicineId String   @map("medicine_id")
     medicine   Medicine @relation(fields: [medicineId], references: [id])
 
     @@map("reviews")

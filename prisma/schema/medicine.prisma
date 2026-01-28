@@ -1,16 +1,17 @@
 model Medicine {
-    id          String   @id @default(uuid())
+    id          String   @id @default(uuid()) @map("medicine_id")
     name        String
     description String
     price       Float
     stock       Int
     image       String
-    createdAt   DateTime @default(now())
+    manufacturer String
+    createdAt   DateTime @default(now()) @map("created_at")
 
-    sellerId String
+    sellerId String @map("seller_id")
     seller   User   @relation(fields: [sellerId], references: [id])
 
-    categoryId String
+    categoryId String   @map("category_id")
     category   Category @relation(fields: [categoryId], references: [id])
 
     reviews Review[]

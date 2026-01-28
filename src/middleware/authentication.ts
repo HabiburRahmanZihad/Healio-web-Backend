@@ -22,7 +22,7 @@ declare global {
                 email: string;
                 role: UserRole;
                 emailVerified: boolean;
-                status: "ACTIVE" | "BLOCKED";
+                isBlocked: boolean;
             };
         }
     }
@@ -53,7 +53,7 @@ const authorize = (...roles: UserRole[]) => {
             const user = session.user as any;
 
             // Blocked user
-            if (user.status === "BLOCKED") {
+            if (user.isBlocked) {
                 return res.status(403).json({ message: "User is blocked by admin" });
             }
 
@@ -64,7 +64,7 @@ const authorize = (...roles: UserRole[]) => {
                 email: user.email,
                 role: user.role as UserRole,
                 emailVerified: user.emailVerified,
-                status: user.status as "ACTIVE" | "BLOCKED",
+                isBlocked: !!user.isBlocked,
             };
 
             // Role-based access control

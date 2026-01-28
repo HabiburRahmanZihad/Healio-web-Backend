@@ -1,20 +1,20 @@
 // Models for Better Auth integration
 model User {
-    id            String   @id @default(uuid())
+    id            String   @id @default(uuid()) @map("user_id")
     name          String
     email         String
     emailVerified Boolean  @default(false)
     image         String?
-    createdAt     DateTime @default(now())
+    createdAt     DateTime @default(now()) @map("created_at")
     updatedAt     DateTime @updatedAt
 
     sessions Session[]
     accounts Account[]
 
     // MediStore fields
-    role   String  @default("CUSTOMER") // CUSTOMER, SELLER, ADMIN
-    phone  String?
-    status String  @default("ACTIVE") // ACTIVE, BLOCKED
+    role      String  @default("CUSTOMER") // CUSTOMER, SELLER, ADMIN
+    phone     String?
+    isBlocked Boolean @default(false) @map("is_blocked")
 
     // MediStore relations
     medicines Medicine[]
