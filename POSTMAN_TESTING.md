@@ -76,7 +76,16 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
   "email": "user@example.com",
   "password": "Password123",
   "name": "Full Name",
-  "role": "CUSTOMER" // Options: CUSTOMER, SELLER, ADMIN
+  "role": "CUSTOMER" 
+}
+```
+- **Sample Response** (201):
+```json
+{
+  "id": "user-uuid",
+  "name": "Full Name",
+  "email": "user@example.com",
+  "role": "CUSTOMER"
 }
 ```
 
@@ -90,6 +99,13 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
   "password": "Password123"
 }
 ```
+- **Sample Response** (200):
+```json
+{
+  "session": { "token": "...", "expiresAt": "..." },
+  "user": { "id": "...", "name": "...", "role": "..." }
+}
+```
 
 ---
 
@@ -98,15 +114,18 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 3. Get All Categories (Public)
 - **URL**: `/api/categories`
 - **Method**: `GET`
+- **Sample Response**: `[{"id": "...", "name": "Herbal"}]`
 
 ### 4. Create Category (Admin)
 - **URL**: `/api/categories`
 - **Method**: `POST`
 - **Body**: `{"name": "Homeopathy"}`
+- **Sample Response**: `{"id": "...", "name": "Homeopathy"}`
 
 ### 5. Delete Category (Admin)
 - **URL**: `/api/categories/:id`
 - **Method**: `DELETE`
+- **Sample Response**: `{"success": true, "message": "Category removed"}`
 
 ---
 
@@ -115,11 +134,28 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 6. Get All Medicines (Public)
 - **URL**: `/api/medicines`
 - **Method**: `GET`
-- **Query Params**: `search`, `category`, `manufacturer`, `minPrice`, `maxPrice`
+- **Params**: `search`, `category`, `manufacturer`, `minPrice`, `maxPrice`
+- **Sample Response**: 
+```json
+{
+  "success": true,
+  "data": [{ "id": "...", "name": "Napa", "price": 10, "stock": 50 }]
+}
+```
 
 ### 7. Get Medicine Details (Public)
 - **URL**: `/api/medicines/:id`
 - **Method**: `GET`
+- **Sample Response**:
+```json
+{
+  "id": "...",
+  "name": "Napa",
+  "description": "...",
+  "seller": { "name": "Beximco Pharm" },
+  "reviews": [...]
+}
+```
 
 ### 8. Create Medicine (Seller)
 - **URL**: `/api/seller/medicines`
@@ -140,13 +176,7 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 9. Update Medicine (Seller - Own Only)
 - **URL**: `/api/seller/medicines/:id`
 - **Method**: `PUT`
-- **Body**: (Partial updates allowed)
-```json
-{
-  "price": 16.0,
-  "stock": 450
-}
-```
+- **Body**: `{"price": 16.0, "stock": 450}`
 
 ### 10. Delete Medicine (Seller - Own Only)
 - **URL**: `/api/seller/medicines/:id`
@@ -170,6 +200,7 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
   "address": "123 Main St, Dhaka"
 }
 ```
+- **Sample Response**: `{"success": true, "data": {"id": "order-uuid", "status": "PLACED"}}`
 
 ### 12. Get My Orders (All Auth Roles)
 - **URL**: `/api/orders`
@@ -183,7 +214,6 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 14. Get Seller Orders (Seller)
 - **URL**: `/api/seller/orders`
 - **Method**: `GET`
-- *Note*: Returns orders containing the seller's medicines.
 
 ### 15. Update Order Status (Seller Only)
 - **URL**: `/api/seller/orders/:id`
@@ -193,13 +223,13 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 16. Admin Update Status (Admin)
 - **URL**: `/api/orders/:id/status`
 - **Method**: `PATCH`
-- **Body**: `{"status": "SHIPPED"}`
+- **Body**: `{"status": "DELIVERED"}`
 
-### 15. Cancel Order (Customer - Own Only)
+### 17. Cancel Order (Customer - Own Only)
 - **URL**: `/api/orders/:id/cancel`
 - **Method**: `PATCH`
 
-### 16. Seller Stats (Seller)
+### 18. Seller Stats (Seller)
 - **URL**: `/api/orders/seller/stats`
 - **Method**: `GET`
 
@@ -207,11 +237,11 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 
 ## ⭐ Reviews & Ratings
 
-### 17. Get Medicine Reviews (Public)
+### 19. Get Medicine Reviews (Public)
 - **URL**: `/api/reviews/:medicineId`
 - **Method**: `GET`
 
-### 18. Leave Review (Customer)
+### 20. Leave Review (Customer)
 - **URL**: `/api/reviews`
 - **Method**: `POST`
 - **Body**:
@@ -224,6 +254,40 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ```
 
 ---
+
+## 👤 User Profile
+
+### 21. Get My Profile (Auth)
+- **URL**: `/api/users/me` (or `/api/auth/me`)
+- **Method**: `GET`
+
+### 22. Update My Profile (Auth)
+- **URL**: `/api/users/me`
+- **Method**: `PATCH`
+- **Body**: `{"name": "New Name", "phone": "017..."}`
+
+---
+
+## 🛡️ Administrative (Admin Only)
+
+### 23. Get All Users
+- **URL**: `/api/admin/users`
+- **Method**: `GET`
+- **Sample Response**: `[{"id": "...", "name": "...", "role": "CUSTOMER", "status": "ACTIVE"}]`
+
+### 24. Toggle User Block Status
+- **URL**: `/api/admin/users/:id`
+- **Method**: `PATCH`
+- **Body**: `{"status": "BLOCKED"}`
+- **Sample Response**: `{"success": true, "message": "User status updated"}`
+
+### 25. Admin Dashboard Stats
+- **URL**: `/api/admin/stats`
+- **Method**: `GET`
+- **Sample Response**: `{"totalUsers": 120, "totalOrders": 450, "totalRevenue": 15000}`
+
+---
+
 
 ## 👥 API Reference by Role
 
@@ -276,41 +340,11 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 
 ---
 
-## 👤 User Profile
-
-### 19. Get My Profile (Auth)
-- **URL**: `/api/users/me` (or `/api/auth/me`)
-- **Method**: `GET`
-
-### 20. Update My Profile (Auth)
-- **URL**: `/api/users/me`
-- **Method**: `PATCH`
-- **Body**: `{"name": "Updated Name", "phone": "017..."}`
-
----
-
-## 🛡️ Administrative (Admin Only)
-
-### 21. Get All Users
-- **URL**: `/api/admin/users`
-- **Method**: `GET`
-
-### 22. Toggle User Block Status
-- **URL**: `/api/admin/users/:id`
-- **Method**: `PATCH`
-- **Body**: `{"isBlocked": true}`
-
-### 23. Admin Dashboard Stats
-- **URL**: `/api/admin/stats`
-- **Method**: `GET`
-
----
-
 ## 🏁 Testing Flow (Step-by-Step)
 1. **Login as Admin** (`/api/auth/login`) -> Create Category (`/api/categories`).
-2. **Register/Login as Seller** -> Create Medicine (`/api/medicines`).
+2. **Register/Login as Seller** -> Create Medicine (`/api/seller/medicines`).
 3. **Register/Login as Customer** -> Place Order (`/api/orders`).
-4. **Login as Seller** -> Update Status to `SHIPPED` (`/api/orders/:id/status`).
+4. **Login as Seller** -> Update Status to `SHIPPED` (`/api/seller/orders/:id`).
 5. **Login as Admin** -> View Stats (`/api/admin/stats`).
 
 **Done!** Use these endpoints to verify your backend integration. 🚀
