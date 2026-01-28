@@ -25,4 +25,9 @@ router.get("/:id", authMiddleware(), getOrderDetails);
 // Seller and Admin
 router.patch("/:id/status", authMiddleware(UserRole.SELLER, UserRole.ADMIN), updateOrderStatus);
 
+// Seller specific routes (to be mounted at /api/seller/orders)
+export const sellerOrderRouter = Router();
+sellerOrderRouter.get("/", authMiddleware(UserRole.SELLER), getMyOrders);
+sellerOrderRouter.patch("/:id", authMiddleware(UserRole.SELLER), updateOrderStatus);
+
 export const orderRouter = router;

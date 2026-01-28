@@ -32,7 +32,7 @@ export const getMyOrders = catchAsync(async (req: Request, res: Response) => {
     if (user.role === "CUSTOMER") {
         result = await OrderService.getCustomerOrders(user.id);
     } else if (user.role === "SELLER") {
-        result = await OrderService.getSellerOrders();
+        result = await OrderService.getSellerOrders(user.id);
     } else {
         result = await OrderService.getAdminOrders();
     }
@@ -83,7 +83,13 @@ export const updateOrderStatus = catchAsync(async (req: Request, res: Response) 
         return res.status(403).json({ success: false, message: "Only sellers and admins can update order status" });
     }
 
-    const result = await OrderService.updateStatus(id, status);
+    let result;
+    if (user.role === "ADMIN") {
+        result = await OrderService.updateStatus(id, status);
+    } else {
+        // It's a seller (enforced by middleware or early return above)
+        result = await OrderService.updateSellerOrderStatus(id, status, user.id);
+    }
 
     sendResponse(res, {
         statusCode: 200,

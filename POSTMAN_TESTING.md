@@ -41,14 +41,16 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 | **MEDICINES** | | | |
 | `GET` | `/api/medicines` | Query medicines (search/filter) | Public |
 | `GET` | `/api/medicines/:id` | Get detailed medicine info | Public |
-| `POST` | `/api/medicines` | Add new inventory items | Seller |
-| `PUT` | `/api/medicines/:id` | Update stock/price/details | Seller (Own) |
-| `DELETE` | `/api/medicines/:id`| Remove inventory items | Seller (Own) |
+| `POST` | `/api/seller/medicines` | Add new inventory items | Seller |
+| `PUT` | `/api/seller/medicines/:id` | Update stock/price/details | Seller (Own) |
+| `DELETE` | `/api/seller/medicines/:id`| Remove inventory items | Seller (Own) |
 | **ORDERS** | | | |
 | `POST` | `/api/orders` | Checkout and place order | Customer |
+| `GET` | `/api/seller/orders` | Get seller's orders | Seller |
 | `GET` | `/api/orders` | View order history | Auth (Role based) |
 | `GET` | `/api/orders/:id` | View specific order details | Auth |
-| `PATCH` | `/api/orders/:id/status`| Update delivery status | Seller/Admin |
+| `PATCH` | `/api/seller/orders/:id`| Update order status | Seller |
+| `PATCH` | `/api/orders/:id/status`| Update delivery status (Admin) | Admin |
 | `PATCH` | `/api/orders/:id/cancel`| Cancel a pending order | Customer (Own) |
 | `GET` | `/api/orders/seller/stats`| View sales analytics | Seller |
 | **REVIEWS** | | | |
@@ -120,7 +122,7 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 - **Method**: `GET`
 
 ### 8. Create Medicine (Seller)
-- **URL**: `/api/medicines`
+- **URL**: `/api/seller/medicines`
 - **Method**: `POST`
 - **Body**:
 ```json
@@ -136,7 +138,7 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ```
 
 ### 9. Update Medicine (Seller - Own Only)
-- **URL**: `/api/medicines/:id`
+- **URL**: `/api/seller/medicines/:id`
 - **Method**: `PUT`
 - **Body**: (Partial updates allowed)
 ```json
@@ -147,7 +149,7 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ```
 
 ### 10. Delete Medicine (Seller - Own Only)
-- **URL**: `/api/medicines/:id`
+- **URL**: `/api/seller/medicines/:id`
 - **Method**: `DELETE`
 
 ---
@@ -178,10 +180,20 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 - **URL**: `/api/orders/:id`
 - **Method**: `GET`
 
-### 14. Update Order Status (Seller/Admin)
-- **URL**: `/api/orders/:id/status`
+### 14. Get Seller Orders (Seller)
+- **URL**: `/api/seller/orders`
+- **Method**: `GET`
+- *Note*: Returns orders containing the seller's medicines.
+
+### 15. Update Order Status (Seller Only)
+- **URL**: `/api/seller/orders/:id`
 - **Method**: `PATCH`
 - **Body**: `{"status": "SHIPPED"}` // Options: PLACED, SHIPPED, DELIVERED, CANCELLED
+
+### 16. Admin Update Status (Admin)
+- **URL**: `/api/orders/:id/status`
+- **Method**: `PATCH`
+- **Body**: `{"status": "SHIPPED"}`
 
 ### 15. Cancel Order (Customer - Own Only)
 - **URL**: `/api/orders/:id/cancel`

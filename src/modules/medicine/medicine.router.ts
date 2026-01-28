@@ -19,4 +19,10 @@ router.post("/", authMiddleware(UserRole.SELLER), createMedicine);
 router.put("/:id", authMiddleware(UserRole.SELLER), updateMedicine);
 router.delete("/:id", authMiddleware(UserRole.SELLER), deleteMedicine);
 
+// Seller specific routes (to be mounted at /api/seller/medicines)
+export const sellerMedicineRouter = Router();
+sellerMedicineRouter.post("/", authMiddleware(UserRole.SELLER), createMedicine);
+sellerMedicineRouter.put("/:id", authMiddleware(UserRole.SELLER), updateMedicine);
+sellerMedicineRouter.delete("/:id", authMiddleware(UserRole.SELLER), deleteMedicine);
+
 export const medicineRouter = router;

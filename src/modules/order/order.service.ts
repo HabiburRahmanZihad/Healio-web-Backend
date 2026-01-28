@@ -37,9 +37,32 @@ export const OrderService = {
         });
     },
 
-    getSellerOrders: async () => {
-        return prisma.order.findMany({
+    getSellerOrders: async (sellerId: string) => {
+        // Find medicines owned by this seller
+        const sellerMedicines = await prisma.medicine.findMany({
+            where: { sellerId },
+            select: { id: true }
+        });
+        const sellerMedicineIds = sellerMedicines.map(m => m.id);
+
+        if (sellerMedicineIds.length === 0) return [];
+
+        // Find orders that contain at least one of these medicines
+        // Note: In a production app, you might want to only return the items belonging to the seller,
+        // but here we return the whole order if it contains their medicine.
+        const orders = await prisma.order.findMany({
             orderBy: { createdAt: "desc" },
+            include: {
+                customer: {
+                    select: { id: true, name: true, email: true },
+                },
+            },
+        });
+
+        // Filter in memory because of Json structure (items)
+        return orders.filter(order => {
+            const items = order.items as any[];
+            return items.some(item => sellerMedicineIds.includes(item.medicineId));
         });
     },
 
@@ -66,6 +89,34 @@ export const OrderService = {
     },
 
     updateStatus: async (id: string, status: string) => {
+        return prisma.order.update({
+            where: { id },
+            data: { status },
+        });
+    },
+
+    updateSellerOrderStatus: async (id: string, status: string, sellerId: string) => {
+        // 1. Get the order
+        const order = await prisma.order.findUnique({
+            where: { id }
+        });
+
+        if (!order) throw new Error("Order not found");
+
+        // 2. Verify visibility: Does the order contain items from this seller?
+        const sellerMedicines = await prisma.medicine.findMany({
+            where: { sellerId },
+            select: { id: true }
+        });
+        const sellerMedicineIds = sellerMedicines.map(m => m.id);
+        const items = order.items as any[];
+        const hasOwnership = items.some(item => sellerMedicineIds.includes(item.medicineId));
+
+        if (!hasOwnership) {
+            throw new Error("Unauthorized to update this order");
+        }
+
+        // 3. Update status
         return prisma.order.update({
             where: { id },
             data: { status },
