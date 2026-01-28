@@ -2,17 +2,18 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 import nodemailer from "nodemailer";
+import { config } from "../config";
 
 // ================================
 // Mail Transporter
 // ================================
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
+    host: config.smtp.host || "smtp.gmail.com",
+    port: config.smtp.port || 587,
     secure: false,
     auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: config.smtp.user,
+        pass: config.smtp.pass,
     },
 });
 
@@ -24,7 +25,7 @@ export const auth = betterAuth({
         provider: "postgresql",
     }),
 
-    trustedOrigins: [process.env.APP_URL!],
+    trustedOrigins: [config.app_url],
 
     // 🔥🔥🔥 THIS IS THE KEY PART 🔥🔥🔥
     // HARD BLOCK ADMIN FROM PUBLIC SIGNUP
@@ -32,7 +33,7 @@ export const auth = betterAuth({
         user: {
             create: {
                 before: async (user) => {
-                    if (user.role === "ADMIN" && process.env.ALLOW_ADMIN_SIGNUP !== "true") {
+                    if (user.role === "ADMIN" && !config.allow_admin_signup) {
                         throw new Error("ADMIN signup is not allowed");
                     }
 
@@ -108,8 +109,8 @@ export const auth = betterAuth({
         google: {
             prompt: "select_account consent",
             accessType: "offline",
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientId: config.google.client_id!,
+            clientSecret: config.google.client_secret!,
         },
     },
 });

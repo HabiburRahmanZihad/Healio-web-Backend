@@ -87,18 +87,37 @@ npm start
 
 # Developer Mode (with reload)
 npm run dev
+
+# Seed Admin (Production)
+# Note: Ensure ALLOW_ADMIN_SIGNUP=true and NODE_ENV=production
+npm run seed:admin
 ```
+
+## 📖 API Documentation
+
+For a comprehensive list of all endpoints, including request examples and role-based access, please refer to our testing guide:
+
+👉 **[Postman API Testing Guide](POSTMAN_TESTING.md)**
 
 ## 🏗️ Project Structure
 ```text
 src/
+├── config/         # Centralized Environment Config
 ├── controllers/    # Request handling logic
+├── lib/            # Shared libraries (Prisma, Auth)
 ├── middlewares/    # Auth & validation guards
-├── routes/         # API endpoint definitions
-├── services/       # Business logic layer
+├── modules/        # Feature-based modular logic
 ├── scripts/        # Seeding & maintenance tools
 └── server.ts       # Application entry point
 ```
+
+## 🛠️ Maintenance: Seeding Admin in Production
+
+If you are deploying for the first time, you must seed the initial admin user.
+
+1. Set `ALLOW_ADMIN_SIGNUP=true` in your environment.
+2. Ensure `NODE_ENV=production` is set (to enable SSL for remote DBs).
+3. Run: `npm run seed:admin`
 
 ## 🤝 Contribution
 1. Fork the repo.
