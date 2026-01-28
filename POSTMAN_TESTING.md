@@ -225,6 +225,57 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 
 ---
 
+## 👥 API Reference by Role
+
+### 🌍 Public Endpoints (No Auth)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Server health check |
+| `POST` | `/api/auth/register` | Create a new user account |
+| `POST` | `/api/auth/login` | Secure user login |
+| `GET` | `/api/categories` | Browse all medicine categories |
+| `GET` | `/api/medicines` | Search and filter medicines |
+| `GET` | `/api/medicines/:id` | Get individual medicine details |
+| `GET` | `/api/reviews/:medicineId`| See feedback for a medicine |
+
+### 👤 Customer Endpoints
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/auth/me` | Fetch active session & role |
+| `GET` | `/api/users/me` | Fetch your user profile |
+| `PATCH` | `/api/users/me` | Update your display name/phone |
+| `POST` | `/api/orders` | Checkout and place an order |
+| `GET` | `/api/orders` | View your personal order history |
+| `GET` | `/api/orders/:id` | View your specific order details |
+| `PATCH` | `/api/orders/:id/cancel`| Cancel a pending order (PLACED) |
+| `POST` | `/api/reviews` | Submit feedback for a medicine |
+
+### 🏪 Seller Endpoints
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/auth/me` | Fetch active session & role |
+| `POST` | `/api/seller/medicines` | Add new medicine to inventory |
+| `PUT` | `/api/seller/medicines/:id` | Update your medicine details |
+| `DELETE` | `/api/seller/medicines/:id`| Remove your medicine |
+| `GET` | `/api/seller/orders` | Get orders for your products |
+| `PATCH` | `/api/seller/orders/:id`| Update order status (SHIPPED, etc.) |
+| `GET` | `/api/orders/seller/stats`| View sales & revenue analytics |
+
+### 🛡️ Admin Endpoints
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/auth/me` | Fetch active session & role |
+| `POST` | `/api/categories` | Create a new medicine category |
+| `DELETE` | `/api/categories/:id` | Remove a category |
+| `GET` | `/api/orders` | View every order in the system |
+| `PATCH` | `/api/orders/:id/status`| Global order status override |
+| `GET` | `/api/admin/users` | List all registered users |
+| `PATCH` | `/api/admin/users/:id` | Block/Unblock a user account |
+| `GET` | `/api/admin/stats` | System-wide performance stats |
+
+
+---
+
 ## 👤 User Profile
 
 ### 19. Get My Profile (Auth)
