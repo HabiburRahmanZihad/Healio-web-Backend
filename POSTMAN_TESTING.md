@@ -210,10 +210,36 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 13. Get Order Details (Auth)
 - **URL**: `/api/orders/:id`
 - **Method**: `GET`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Order details fetched successfully",
+  "data": {
+    "id": "order-uuid",
+    "status": "PLACED",
+    "totalPrice": 45,
+    "address": "...",
+    "items": [
+      { "medicine": { "name": "Napa" }, "quantity": 2 }
+    ]
+  }
+}
+```
 
 ### 14. Get Seller Orders (Seller)
 - **URL**: `/api/seller/orders`
 - **Method**: `GET`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Orders fetched successfully",
+  "data": [
+    { "id": "...", "status": "PLACED", "totalPrice": 100 }
+  ]
+}
+```
 
 ### 15. Update Order Status (Seller Only)
 - **URL**: `/api/seller/orders/:id`
@@ -228,10 +254,33 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 17. Cancel Order (Customer - Own Only)
 - **URL**: `/api/orders/:id/cancel`
 - **Method**: `PATCH`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Order cancelled successfully",
+  "data": {
+    "id": "order-uuid",
+    "status": "CANCELLED"
+  }
+}
+```
 
 ### 18. Seller Stats (Seller)
 - **URL**: `/api/orders/seller/stats`
 - **Method**: `GET`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Seller stats fetched successfully",
+  "data": {
+    "totalSales": 5000,
+    "totalOrders": 12,
+    "pendingOrders": 2
+  }
+}
+```
 
 ---
 
@@ -240,6 +289,16 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 19. Get Medicine Reviews (Public)
 - **URL**: `/api/reviews/:medicineId`
 - **Method**: `GET`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Reviews fetched successfully",
+  "data": [
+    { "rating": 5, "comment": "Great!", "user": { "name": "John" } }
+  ]
+}
+```
 
 ### 20. Leave Review (Customer)
 - **URL**: `/api/reviews`
@@ -252,6 +311,14 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
   "medicineId": "PASTE_MEDICINE_ID"
 }
 ```
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Review submitted successfully",
+  "data": { "id": "review-uuid", "rating": 5, "comment": "..." }
+}
+```
 
 ---
 
@@ -260,11 +327,32 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 21. Get My Profile (Auth)
 - **URL**: `/api/users/me` (or `/api/auth/me`)
 - **Method**: `GET`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Profile fetched successfully",
+  "data": {
+    "id": "...",
+    "name": "John Doe",
+    "email": "user@example.com",
+    "role": "CUSTOMER"
+  }
+}
+```
 
 ### 22. Update My Profile (Auth)
 - **URL**: `/api/users/me`
 - **Method**: `PATCH`
 - **Body**: `{"name": "New Name", "phone": "017..."}`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "data": { "name": "New Name", "phone": "017..." }
+}
+```
 
 ---
 
@@ -273,18 +361,45 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ### 23. Get All Users
 - **URL**: `/api/admin/users`
 - **Method**: `GET`
-- **Sample Response**: `[{"id": "...", "name": "...", "role": "CUSTOMER", "status": "ACTIVE"}]`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Users fetched successfully",
+  "data": [
+    { "id": "...", "name": "John", "role": "CUSTOMER", "isBlocked": false }
+  ]
+}
+```
 
 ### 24. Toggle User Block Status
 - **URL**: `/api/admin/users/:id`
 - **Method**: `PATCH`
-- **Body**: `{"status": "BLOCKED"}`
-- **Sample Response**: `{"success": true, "message": "User status updated"}`
+- **Body**: `{"isBlocked": true}`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "User status updated successfully",
+  "data": { "id": "...", "isBlocked": true }
+}
+```
 
 ### 25. Admin Dashboard Stats
 - **URL**: `/api/admin/stats`
 - **Method**: `GET`
-- **Sample Response**: `{"totalUsers": 120, "totalOrders": 450, "totalRevenue": 15000}`
+- **Sample Response**:
+```json
+{
+  "success": true,
+  "message": "Dashboard stats fetched successfully",
+  "data": {
+    "totalUsers": 120,
+    "totalOrders": 450,
+    "totalRevenue": 15000
+  }
+}
+```
 
 ---
 
