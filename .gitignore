@@ -4,7 +4,7 @@ dist
 *.log
 *.sqlite
 *.sqlite-journal
-prisma/migrations
+# prisma/migrations removed from here
 *.tsbuildinfo
 .vscode
 .DS_Store

@@ -33,7 +33,7 @@ app.use(express.json());
 // ================================
 // Better Auth Routes
 // ================================
-app.all('/api/auth/{*any}', toNodeHandler(auth));
+app.use("/api/auth", toNodeHandler(auth));
 
 // ================================
 // Application Routes
