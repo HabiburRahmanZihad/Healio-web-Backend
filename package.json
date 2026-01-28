@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx tsx watch src/server.ts",
-    "start": "node dist/server.js",
+    "start": "npx tsx src/server.ts",
     "build": "prisma generate && tsc",
     "seed:admin": "npx tsx  src/scripts/seedAdmin.ts"
   },
@@ -30,7 +30,6 @@
     "@types/nodemailer": "^7.0.4",
     "@types/pg": "^8.16.0",
     "prisma": "^7.3.0",
-    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
@@ -42,6 +41,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "nodemailer": "^7.0.12",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "tsx": "^4.21.0"
   }
 }
