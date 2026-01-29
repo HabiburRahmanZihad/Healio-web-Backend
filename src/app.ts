@@ -52,15 +52,20 @@ app.use(express.json());
 app.get("/api/auth/me", authMiddleware(), getMyProfile);
 
 app.post("/api/auth/register", async (req: Request, res: Response) => {
-    // 1. Proxy to better-auth sign-up
-    const result = await auth.api.signUpEmail({
-        body: req.body,
-    });
+    try {
+        console.log("Registering user:", req.body.email);
 
-    if (result && !("error" in result)) {
+        // 1. Proxy to better-auth sign-up
+        const result = await auth.api.signUpEmail({
+            body: req.body,
+        });
+
+        console.log("Signup success for:", req.body.email);
+
+        // 2. Generate verification token manually (if not returned by signup)
+        let verificationUrl: string | null = null;
         try {
-            // 2. Generate verification token manually
-            // Use any because better-auth types for internal api methods might be complex
+            console.log("Generating verification token for:", req.body.email);
             const token = await (auth.api as any).generateVerificationToken({
                 body: {
                     email: req.body.email,
@@ -68,7 +73,8 @@ app.post("/api/auth/register", async (req: Request, res: Response) => {
             });
 
             if (token) {
-                const verificationUrl = `${config.better_auth.url}/verify-email?token=${token.token}&callbackURL=${config.app_url}/login`;
+                console.log("Token generated successfully");
+                verificationUrl = `${config.better_auth.url}/verify-email?token=${token.token}&callbackURL=${config.app_url}/login`;
 
                 // 3. Try to send email in background
                 import("nodemailer").then(async (nodemailer) => {
@@ -100,20 +106,26 @@ app.post("/api/auth/register", async (req: Request, res: Response) => {
                     } catch (emailError) {
                         console.error("Failed to send email in background:", emailError);
                     }
-                });
-
-                // Always return the verificationUrl for the frontend modal
-                return res.json({
-                    ...result,
-                    verificationUrl
-                });
+                }).catch(err => console.error("Import error for nodemailer:", err));
             }
-        } catch (error) {
-            console.error("Error generating verification token:", error);
+        } catch (tokenErr) {
+            console.error("Token generation error (non-fatal):", tokenErr);
         }
-    }
 
-    res.json(result);
+        // Return combined result
+        const finalResponse = {
+            ...result,
+            verificationUrl
+        };
+        console.log("Returning combined result for:", req.body.email, JSON.stringify(finalResponse).substring(0, 100) + "...");
+        res.json(finalResponse);
+    } catch (outerError) {
+        console.error("FATAL error in /api/auth/register proxy:", outerError);
+        res.status(500).json({
+            error: "Internal Server Error",
+            message: outerError instanceof Error ? outerError.message : String(outerError)
+        });
+    }
 });
 
 app.post("/api/auth/login", async (req: Request, res: Response) => {

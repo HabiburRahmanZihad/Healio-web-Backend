@@ -27,30 +27,6 @@ export const auth = betterAuth({
 
     trustedOrigins: config.trusted_origins,
 
-    // 🔥🔥🔥 THIS IS THE KEY PART 🔥🔥🔥
-    // HARD BLOCK ADMIN FROM PUBLIC SIGNUP
-    databaseHooks: {
-        user: {
-            create: {
-                before: async (user) => {
-                    console.log("Creating user with data:", user);
-                    if (user.role === "ADMIN" && !config.allow_admin_signup) {
-                        throw new Error("ADMIN signup is not allowed");
-                    }
-
-                    // extra safety: force default
-                    if (!user.role) {
-                        user.role = "CUSTOMER";
-                    }
-
-                    return {
-                        data: user,
-                    };
-                },
-            },
-        },
-    },
-
     // ================================
     // User extra fields
     // ================================
