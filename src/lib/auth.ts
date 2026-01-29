@@ -89,16 +89,22 @@ export const auth = betterAuth({
         autoSignInAfterVerification: true,
 
         sendVerificationEmail: async ({ user, url }) => {
-            await transporter.sendMail({
-                from: `"Healio" <no-reply@healio.com>`,
-                to: user.email!,
-                subject: "Verify your email address",
-                html: `
-            <p>Hello ${user.name},</p>
-            <p>Please verify your email address:</p>
-            <a href="${url}">Verify Email</a>
-        `,
-            });
+            try {
+                await transporter.sendMail({
+                    from: `"Healio" <no-reply@healio.com>`,
+                    to: user.email!,
+                    subject: "Verify your email address",
+                    html: `
+                <p>Hello ${user.name},</p>
+                <p>Please verify your email address:</p>
+                <a href="${url}">Verify Email</a>
+            `,
+                });
+                console.log(`Verification email sent to ${user.email}`);
+            } catch (error) {
+                console.error(`Failed to send verification email to ${user.email}:`, error);
+                // Don't throw - let signup succeed even if email fails
+            }
         },
     },
 
