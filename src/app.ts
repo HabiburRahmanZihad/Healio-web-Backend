@@ -46,85 +46,71 @@ app.use(express.json());
 // ================================
 app.get("/api/auth/me", authMiddleware(), getMyProfile);
 
-// Custom Registration Proxy (Avoids collision with /api/auth/*)
+// Custom Registration Proxy (Auto-verify email)
 app.post("/api/auth-registration", async (req: Request, res: Response) => {
     console.log(">>> [REG_PROXY] START:", req.body?.email);
     res.setHeader('Content-Type', 'application/json');
 
     try {
-        // 1. Better Auth Sign Up
-        console.log(">>> [REG_PROXY] Calling Better Auth signUpEmail...");
         const result = await auth.api.signUpEmail({
             body: req.body,
         });
 
         const data = result as any;
         if (data?.error) {
-            console.warn(">>> [REG_PROXY] Better Auth returned an error:", data.error);
-            return res.status(200).json({ error: data.error }); // Return 200 with error object to prevent proxy-level 500s
+            return res.status(200).json({ error: data.error });
         }
 
         if (data?.user) {
-            console.log(">>> [REG_PROXY] SUCCESS: User created:", data.user.email);
+            console.log(">>> [REG_PROXY] User created. Verifying email...");
 
-            let verificationUrl: string | null = null;
-            try {
-                // Generate a token manually using Prisma as a safe fallback 
-                console.log(">>> [REG_PROXY] Generating fallback verification token...");
-                const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+            // Auto-verify on registration
+            await prisma.user.update({
+                where: { email: data.user.email },
+                data: { emailVerified: true }
+            }).catch(e => console.error(">>> [REG_PROXY] Auto-verify failed:", e.message));
 
-                // Create verification record in DB (Don't let this failure block the whole response, but log it)
-                prisma.verification.create({
-                    data: {
-                        identifier: data.user.email,
-                        value: token,
-                        expiresAt,
-                    }
-                }).then(() => {
-                    console.log(">>> [REG_PROXY] DB verification record created successfully");
-                }).catch(e => {
-                    console.error(">>> [REG_PROXY] DB verification record creation FAILED:", (e as any).message);
-                });
-
-                verificationUrl = `${config.better_auth.url}/verify-email?token=${token}&callbackURL=${config.app_url}/login`;
-                console.log(">>> [REG_PROXY] Verification URL generated:", verificationUrl);
-
-                // Trigger official verification email in background
-                console.log(">>> [REG_PROXY] Scheduling official verification email...");
-                auth.api.sendVerificationEmail({
-                    body: { email: data.user.email }
-                }).catch(e => console.error(">>> [REG_PROXY] Background email trigger FAILED (non-fatal):", (e as any).message));
-
-            } catch (innerError: any) {
-                console.error(">>> [REG_PROXY] ERROR in verification logic:", innerError.message);
-            }
-
-            console.log(">>> [REG_PROXY] Sending final SUCCESS JSON response");
-            return res.json({
-                user: { id: data.user.id, email: data.user.email, name: data.user.name },
-                session: data.session || null,
-                verificationUrl: verificationUrl
+            return res.status(201).json({
+                success: true,
+                message: "Account created successfully",
+                user: { ...data.user, emailVerified: true },
+                session: data.session || null
             });
         }
 
-        console.log(">>> [REG_PROXY] Sending fallthrough result");
-        return res.json(result);
+        return res.status(200).json(result);
 
     } catch (err: any) {
-        console.error(">>> [REG_PROXY] CRITICAL CATCH:", err);
+        console.error(">>> [REG_PROXY] FATAL:", err);
         return res.status(500).json({
-            error: {
-                message: err.message || "An internal error occurred in the registration proxy",
-                code: "PROXY_FATAL"
-            }
+            error: { message: err.message || "Internal Server Error" }
         });
     }
 });
 
+// Custom Login Proxy (Auto-verify email on login)
 app.post("/api/auth/login", async (req: Request, res: Response) => {
-    const result = await auth.api.signInEmail({ body: req.body });
-    res.json(result);
+    try {
+        const result = await auth.api.signInEmail({ body: req.body });
+        const data = result as any;
+
+        if (data?.user?.email) {
+            console.log(">>> [LOGIN_PROXY] User logged in. Ensuring emailVerified: true");
+
+            // Auto-verify on login (in case they were created before this change)
+            await prisma.user.update({
+                where: { email: data.user.email },
+                data: { emailVerified: true }
+            }).catch(e => console.error(">>> [LOGIN_PROXY] Auto-verify failed:", e.message));
+        }
+
+        return res.json(result);
+    } catch (err: any) {
+        console.error(">>> [LOGIN_PROXY] FATAL:", err);
+        return res.status(500).json({
+            error: { message: err.message || "Internal Server Error" }
+        });
+    }
 });
 
 // Better Auth Main Handler
