@@ -15,6 +15,9 @@
 
 ## ⚡ Overview
 
+> [!TIP]
+> For test APIs, go to [POSTMAN_TESTING](POSTMAN_TESTING.md)
+
 **Healio** is a high-performance, enterprise-ready healthcare e-commerce backend. It's designed with a modular architecture to handle complex medicine inventories, secure user roles, and seamless order fulfillment.
 
 > [!IMPORTANT]
