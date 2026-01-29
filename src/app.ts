@@ -13,7 +13,7 @@ import { reviewRouter } from "./modules/review/review.router";
 import { userRouter } from "./modules/user/user.router";
 import { getMyProfile } from "./modules/user/user.controller";
 import authMiddleware from "./middleware/authentication";
-
+import { prisma } from "./lib/prisma";
 import { config } from "./config";
 
 const app = express();
@@ -48,79 +48,75 @@ app.get("/api/auth/me", authMiddleware(), getMyProfile);
 
 // Custom Registration Proxy (Avoids collision with /api/auth/*)
 app.post("/api/auth-registration", async (req: Request, res: Response) => {
-    try {
-        console.log("--> Registration hit for:", req.body.email);
+    console.log(">>> [REG_PROXY] START:", req.body?.email);
+    res.setHeader('Content-Type', 'application/json');
 
+    try {
         // 1. Better Auth Sign Up
+        console.log(">>> [REG_PROXY] Calling Better Auth signUpEmail...");
         const result = await auth.api.signUpEmail({
             body: req.body,
         });
 
         const data = result as any;
         if (data?.error) {
-            console.warn("Better Auth Error:", data.error);
-            return res.json(result);
+            console.warn(">>> [REG_PROXY] Better Auth returned an error:", data.error);
+            return res.status(200).json({ error: data.error }); // Return 200 with error object to prevent proxy-level 500s
         }
 
         if (data?.user) {
-            console.log("Success: User created:", data.user.email);
+            console.log(">>> [REG_PROXY] SUCCESS: User created:", data.user.email);
 
-            // 2. Token Generation
             let verificationUrl: string | null = null;
             try {
-                const tokenResult = await (auth.api as any).generateVerificationToken({
-                    body: { email: data.user.email },
+                // Generate a token manually using Prisma as a safe fallback 
+                console.log(">>> [REG_PROXY] Generating fallback verification token...");
+                const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+                // Create verification record in DB (Don't let this failure block the whole response, but log it)
+                prisma.verification.create({
+                    data: {
+                        identifier: data.user.email,
+                        value: token,
+                        expiresAt,
+                    }
+                }).then(() => {
+                    console.log(">>> [REG_PROXY] DB verification record created successfully");
+                }).catch(e => {
+                    console.error(">>> [REG_PROXY] DB verification record creation FAILED:", (e as any).message);
                 });
 
-                if (tokenResult) {
-                    verificationUrl = `${config.better_auth.url}/verify-email?token=${tokenResult.token}&callbackURL=${config.app_url}/login`;
+                verificationUrl = `${config.better_auth.url}/verify-email?token=${token}&callbackURL=${config.app_url}/login`;
+                console.log(">>> [REG_PROXY] Verification URL generated:", verificationUrl);
 
-                    // 3. Background Email
-                    import("nodemailer").then(async (nm) => {
-                        try {
-                            const transporter = nm.createTransport({
-                                host: config.smtp.host || "smtp.gmail.com",
-                                port: config.smtp.port || 587,
-                                secure: false,
-                                auth: { user: config.smtp.user, pass: config.smtp.pass },
-                            });
+                // Trigger official verification email in background
+                console.log(">>> [REG_PROXY] Scheduling official verification email...");
+                auth.api.sendVerificationEmail({
+                    body: { email: data.user.email }
+                }).catch(e => console.error(">>> [REG_PROXY] Background email trigger FAILED (non-fatal):", (e as any).message));
 
-                            await transporter.sendMail({
-                                from: `"Healio" <no-reply@healio.com>`,
-                                to: req.body.email,
-                                subject: "Verify your email address",
-                                html: `<div style="font-family:sans-serif; padding:20px;">
-                                    <h2>Welcome to Healio!</h2>
-                                    <p>Your account has been created. Click below to verify:</p>
-                                    <a href="${verificationUrl}" style="background:#2563eb; color:white; padding:10px 20px; border-radius:5px; text-decoration:none; display:inline-block;">Verify Email</a>
-                                    <p style="margin-top:20px; font-size:12px; color:#666;">If you can't click the button, copy this: ${verificationUrl}</p>
-                                </div>`,
-                            });
-                            console.log("BG: Email sent successfully");
-                        } catch (e) {
-                            console.error("BG: Failed to send email:", e);
-                        }
-                    }).catch(e => console.error("BG: Failed to load nodemailer:", e));
-                }
-            } catch (tokenError) {
-                console.error("Token generation failed:", tokenError);
+            } catch (innerError: any) {
+                console.error(">>> [REG_PROXY] ERROR in verification logic:", innerError.message);
             }
 
+            console.log(">>> [REG_PROXY] Sending final SUCCESS JSON response");
             return res.json({
-                user: data.user,
-                session: data.session,
-                verificationUrl
+                user: { id: data.user.id, email: data.user.email, name: data.user.name },
+                session: data.session || null,
+                verificationUrl: verificationUrl
             });
         }
 
+        console.log(">>> [REG_PROXY] Sending fallthrough result");
         return res.json(result);
 
-    } catch (error: any) {
-        console.error("FATAL SIGNUP PROXY ERROR:", error);
+    } catch (err: any) {
+        console.error(">>> [REG_PROXY] CRITICAL CATCH:", err);
         return res.status(500).json({
             error: {
-                message: error.message || "Internal Server Error",
-                code: "PROXY_ERROR"
+                message: err.message || "An internal error occurred in the registration proxy",
+                code: "PROXY_FATAL"
             }
         });
     }

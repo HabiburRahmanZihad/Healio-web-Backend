@@ -10,88 +10,57 @@ function errorHandler(
     res: Response,
     next: NextFunction
 ) {
-    let statusCode = err.statusCode || err.status || 500;
-    let message = err.message || "Internal Server Error";
-    let details: any = null;
+    try {
+        let statusCode = err.statusCode || err.status || 500;
+        let message = err.message || "Internal Server Error";
+        let details: any = null;
 
-    // ================================
-    // Prisma Validation Error
-    // ================================
-    if (err instanceof Prisma.PrismaClientValidationError) {
-        statusCode = 400;
-        message = "Invalid request data";
-        details = err.message;
-    }
+        // Safely check for Prisma errors without assuming Prisma is correctly loaded
+        if (err && typeof err === 'object') {
+            const constructorName = err.constructor?.name;
 
-    // ================================
-    // Prisma Known Request Errors
-    // ================================
-    else if (err instanceof Prisma.PrismaClientKnownRequestError) {
-        switch (err.code) {
-            case "P2002":
-                statusCode = 409;
-                message = "Duplicate value violates unique constraint";
-                details = err.meta;
-                break;
-
-            case "P2025":
-                statusCode = 404;
-                message = "Requested record not found";
-                details = err.meta;
-                break;
-
-            case "P2003":
+            if (constructorName?.includes('PrismaClientValidationError')) {
                 statusCode = 400;
-                message = "Invalid foreign key reference";
-                details = err.meta;
-                break;
-
-            default:
-                statusCode = 400;
-                message = "Database request error";
-                details = err.meta;
+                message = "Invalid request data";
+                details = err.message;
+            } else if (constructorName?.includes('PrismaClientKnownRequestError')) {
+                switch (err.code) {
+                    case "P2002":
+                        statusCode = 409;
+                        message = "Duplicate value violates unique constraint";
+                        details = err.meta;
+                        break;
+                    case "P2025":
+                        statusCode = 404;
+                        message = "Requested record not found";
+                        details = err.meta;
+                        break;
+                    default:
+                        statusCode = 400;
+                        message = "Database request error";
+                        details = err.meta;
+                }
+            } else if (constructorName?.includes('PrismaClientInitializationError')) {
+                statusCode = 500;
+                message = "Database connection failed";
+            }
         }
-    }
 
-    // ================================
-    // Prisma Unknown Error
-    // ================================
-    else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
-        statusCode = 500;
-        message = "Unknown database error occurred";
-        details = err.message;
+        // Always return JSON
+        return res.status(statusCode).json({
+            success: false,
+            message,
+            details,
+            stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
+        });
+    } catch (handlerError) {
+        console.error("CRITICAL ERROR IN ERROR HANDLER:", handlerError);
+        // Last resort fallback
+        return res.status(500).json({
+            success: false,
+            message: "A critical internal server error occurred.",
+        });
     }
-
-    // ================================
-    // Prisma Rust Panic Error
-    // ================================
-    else if (err instanceof Prisma.PrismaClientRustPanicError) {
-        statusCode = 500;
-        message = "Critical database error (Rust panic)";
-        details = err.message;
-    }
-
-    // ================================
-    // Prisma Initialization Error
-    // ================================
-    else if (err instanceof Prisma.PrismaClientInitializationError) {
-        statusCode = 500;
-        message = "Failed to initialize database connection";
-        details = err.message;
-    }
-
-    // ================================
-    // Response
-    // ================================
-    res.status(statusCode).json({
-        success: false,
-        message,
-        details,
-        stack:
-            process.env.NODE_ENV === "production"
-                ? undefined
-                : err.stack,
-    });
 }
 
 export default errorHandler;
