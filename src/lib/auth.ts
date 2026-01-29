@@ -79,14 +79,14 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
         autoSignIn: false,
-        requireEmailVerification: false, // Temporary for debugging
+        requireEmailVerification: true,
     },
 
     // ================================
     // Email Verification
     // ================================
     emailVerification: {
-        sendOnSignUp: false, // Temporary for debugging
+        sendOnSignUp: false, // Handle manually in proxy for fallback UI
         autoSignInAfterVerification: true,
 
         sendVerificationEmail: async ({ user, url }) => {

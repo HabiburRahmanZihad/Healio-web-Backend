@@ -52,10 +52,69 @@ app.use(express.json());
 app.get("/api/auth/me", authMiddleware(), getMyProfile);
 
 app.post("/api/auth/register", async (req: Request, res: Response) => {
-    // Proxy to better-auth sign-up
+    // 1. Proxy to better-auth sign-up
     const result = await auth.api.signUpEmail({
         body: req.body,
     });
+
+    if (result && !("error" in result)) {
+        try {
+            // 2. Generate verification token manually
+            // Use any because better-auth types for internal api methods might be complex
+            const token = await (auth.api as any).generateVerificationToken({
+                body: {
+                    email: req.body.email,
+                },
+            });
+
+            if (token) {
+                const verificationUrl = `${config.better_auth.url}/verify-email?token=${token.token}&callbackURL=${config.app_url}/login`;
+
+                // 3. Try to send email using the existing transporter logic if needed
+                // But wait, better-auth's emailVerification.sendVerificationEmail hook is already defined.
+                // If we want to check if it "works", we can call it manually? 
+                // Actually, let's just use the transporter directly here to be sure if it fails.
+
+                try {
+                    const nodemailer = await import("nodemailer");
+                    const transporter = nodemailer.createTransport({
+                        host: config.smtp.host || "smtp.gmail.com",
+                        port: config.smtp.port || 587,
+                        secure: false,
+                        auth: {
+                            user: config.smtp.user,
+                            pass: config.smtp.pass,
+                        },
+                    });
+
+                    await transporter.sendMail({
+                        from: `"Healio" <no-reply@healio.com>`,
+                        to: req.body.email,
+                        subject: "Verify your email address",
+                        html: `
+                            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                <h1 style="color: #0f172a; font-size: 24px; font-weight: bold; margin-bottom: 16px;">Welcome to Healio!</h1>
+                                <p style="color: #475569; font-size: 16px; line-height: 24px; margin-bottom: 24px;">Please verify your email address to get started with your ${req.body.role.toLowerCase()} account.</p>
+                                <a href="${verificationUrl}" style="display: inline-block; background-color: #2563eb; color: white; font-weight: 600; padding: 12px 24px; border-radius: 8px; text-decoration: none;">Verify Email Address</a>
+                                <p style="color: #94a3b8; font-size: 14px; margin-top: 32px;">If you didn't create an account, you can safely ignore this email.</p>
+                            </div>
+                        `,
+                    });
+                    console.log(`Verification email sent to ${req.body.email}`);
+                } catch (emailError) {
+                    console.error("Failed to send email, providing fallback link:", emailError);
+                    // Pass the link to the response so the frontend can show it
+                    return res.json({
+                        ...result,
+                        verificationUrl
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Error generating verification token:", error);
+        }
+    }
+
     res.json(result);
 });
 
