@@ -15,8 +15,10 @@ if (!databaseUrl) {
 // Construction of pool for the adapter
 const pool = new pg.Pool({
     connectionString: databaseUrl,
-    // On Render/Production, SSL is often required
-    ssl: config.env === "production" ? { rejectUnauthorized: false } : false
+    // Enable SSL if in production OR if connecting to a remote host (Render/Neon)
+    ssl: config.env === "production" || databaseUrl?.includes("onrender.com") || databaseUrl?.includes("neon.tech")
+        ? { rejectUnauthorized: false }
+        : false
 });
 
 // Initialize Prisma Client with PostgreSQL adapter
