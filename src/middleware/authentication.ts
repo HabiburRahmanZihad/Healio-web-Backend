@@ -41,12 +41,12 @@ const authorize = (...roles: UserRole[]) => {
 
             // Not authenticated
             if (!session || !session.user) {
-                return res.status(401).json({ message: "Unauthorized" });
+                return res.status(401).json({ success: false, message: "Unauthorized" });
             }
 
             // Email not verified
             if (!session.user.emailVerified) {
-                return res.status(403).json({ message: "Email not verified" });
+                return res.status(403).json({ success: false, message: "Email not verified" });
             }
 
             // Cast user to any to access additional fields or use a specific type
@@ -54,7 +54,7 @@ const authorize = (...roles: UserRole[]) => {
 
             // Blocked user
             if (user.isBlocked) {
-                return res.status(403).json({ message: "User is blocked by admin" });
+                return res.status(403).json({ success: false, message: "User is blocked by admin" });
             }
 
             // Attach user to request
@@ -69,12 +69,13 @@ const authorize = (...roles: UserRole[]) => {
 
             // Role-based access control
             if (roles.length && !roles.includes(req.user.role)) {
-                return res.status(403).json({ message: "Forbidden" });
+                return res.status(403).json({ success: false, message: "Forbidden" });
             }
 
             next();
         } catch (error) {
             return res.status(500).json({
+                success: false,
                 message: "Internal Server Error",
                 details: (error as Error).message,
             });
