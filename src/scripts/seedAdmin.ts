@@ -14,7 +14,11 @@ async function seedAdmin() {
         });
 
         if (existingAdmin) {
-            console.log("⚠️ Admin user already exists. Skipping...");
+            console.log("⚠️ Admin user already exists. Ensuring emailVerified: true...");
+            await prisma.user.update({
+                where: { email: adminEmail },
+                data: { emailVerified: true },
+            });
             return;
         }
 
@@ -31,6 +35,12 @@ async function seedAdmin() {
         });
 
         if (newAdmin) {
+            // Explicitly set emailVerified to true in the database
+            await prisma.user.update({
+                where: { email: adminEmail },
+                data: { emailVerified: true },
+            });
+
             console.log("✅ Admin user created successfully via Better Auth API");
             console.log(`📧 Email: ${adminEmail}`);
             console.log(`🔑 Password: ${adminPassword}`);
