@@ -23,8 +23,8 @@ const app = express();
 // ================================
 const allowedOrigins = [
     config.app_url,
-    "http://localhost:3000", // Keep local dev accessible
-    "https://healio-web.vercel.app" // Example Frontend Production URL
+    "http://localhost:3000",
+    "https://healio-web.vercel.app"
 ];
 
 app.use(cors({
@@ -39,103 +39,99 @@ app.use(cors({
     credentials: true,
 }))
 
-// ================================
-// Body Parser
-// ================================
 app.use(express.json());
 
 // ================================
-// Better Auth Routes & Aliases
+// Auth Proxies & Middleware
 // ================================
-
-// Aliases must come BEFORE the general handler to avoid shadowing
 app.get("/api/auth/me", authMiddleware(), getMyProfile);
 
-app.post("/api/auth/register", async (req: Request, res: Response) => {
+// Custom Registration Proxy (Avoids collision with /api/auth/*)
+app.post("/api/auth-registration", async (req: Request, res: Response) => {
     try {
-        console.log("Registering user:", req.body.email);
+        console.log("--> Registration hit for:", req.body.email);
 
-        // 1. Proxy to better-auth sign-up
+        // 1. Better Auth Sign Up
         const result = await auth.api.signUpEmail({
             body: req.body,
         });
 
-        console.log("Signup success for:", req.body.email);
-
-        // 2. Generate verification token manually (if not returned by signup)
-        let verificationUrl: string | null = null;
-        try {
-            console.log("Generating verification token for:", req.body.email);
-            const token = await (auth.api as any).generateVerificationToken({
-                body: {
-                    email: req.body.email,
-                },
-            });
-
-            if (token) {
-                console.log("Token generated successfully");
-                verificationUrl = `${config.better_auth.url}/verify-email?token=${token.token}&callbackURL=${config.app_url}/login`;
-
-                // 3. Try to send email in background
-                import("nodemailer").then(async (nodemailer) => {
-                    try {
-                        const transporter = nodemailer.createTransport({
-                            host: config.smtp.host || "smtp.gmail.com",
-                            port: config.smtp.port || 587,
-                            secure: false,
-                            auth: {
-                                user: config.smtp.user,
-                                pass: config.smtp.pass,
-                            },
-                        });
-
-                        await transporter.sendMail({
-                            from: `"Healio" <no-reply@healio.com>`,
-                            to: req.body.email,
-                            subject: "Verify your email address",
-                            html: `
-                                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                                    <h1 style="color: #0f172a; font-size: 24px; font-weight: bold; margin-bottom: 16px;">Welcome to Healio!</h1>
-                                    <p style="color: #475569; font-size: 16px; line-height: 24px; margin-bottom: 24px;">Please verify your email address to get started with your ${req.body.role.toLowerCase()} account.</p>
-                                    <a href="${verificationUrl}" style="display: inline-block; background-color: #2563eb; color: white; font-weight: 600; padding: 12px 24px; border-radius: 8px; text-decoration: none;">Verify Email Address</a>
-                                    <p style="color: #94a3b8; font-size: 14px; margin-top: 32px;">If you didn't create an account, you can safely ignore this email.</p>
-                                </div>
-                            `,
-                        });
-                        console.log(`Verification email sent to ${req.body.email}`);
-                    } catch (emailError) {
-                        console.error("Failed to send email in background:", emailError);
-                    }
-                }).catch(err => console.error("Import error for nodemailer:", err));
-            }
-        } catch (tokenErr) {
-            console.error("Token generation error (non-fatal):", tokenErr);
+        const data = result as any;
+        if (data?.error) {
+            console.warn("Better Auth Error:", data.error);
+            return res.json(result);
         }
 
-        // Return combined result
-        const finalResponse = {
-            ...result,
-            verificationUrl
-        };
-        console.log("Returning combined result for:", req.body.email, JSON.stringify(finalResponse).substring(0, 100) + "...");
-        res.json(finalResponse);
-    } catch (outerError) {
-        console.error("FATAL error in /api/auth/register proxy:", outerError);
-        res.status(500).json({
-            error: "Internal Server Error",
-            message: outerError instanceof Error ? outerError.message : String(outerError)
+        if (data?.user) {
+            console.log("Success: User created:", data.user.email);
+
+            // 2. Token Generation
+            let verificationUrl: string | null = null;
+            try {
+                const tokenResult = await (auth.api as any).generateVerificationToken({
+                    body: { email: data.user.email },
+                });
+
+                if (tokenResult) {
+                    verificationUrl = `${config.better_auth.url}/verify-email?token=${tokenResult.token}&callbackURL=${config.app_url}/login`;
+
+                    // 3. Background Email
+                    import("nodemailer").then(async (nm) => {
+                        try {
+                            const transporter = nm.createTransport({
+                                host: config.smtp.host || "smtp.gmail.com",
+                                port: config.smtp.port || 587,
+                                secure: false,
+                                auth: { user: config.smtp.user, pass: config.smtp.pass },
+                            });
+
+                            await transporter.sendMail({
+                                from: `"Healio" <no-reply@healio.com>`,
+                                to: req.body.email,
+                                subject: "Verify your email address",
+                                html: `<div style="font-family:sans-serif; padding:20px;">
+                                    <h2>Welcome to Healio!</h2>
+                                    <p>Your account has been created. Click below to verify:</p>
+                                    <a href="${verificationUrl}" style="background:#2563eb; color:white; padding:10px 20px; border-radius:5px; text-decoration:none; display:inline-block;">Verify Email</a>
+                                    <p style="margin-top:20px; font-size:12px; color:#666;">If you can't click the button, copy this: ${verificationUrl}</p>
+                                </div>`,
+                            });
+                            console.log("BG: Email sent successfully");
+                        } catch (e) {
+                            console.error("BG: Failed to send email:", e);
+                        }
+                    }).catch(e => console.error("BG: Failed to load nodemailer:", e));
+                }
+            } catch (tokenError) {
+                console.error("Token generation failed:", tokenError);
+            }
+
+            return res.json({
+                user: data.user,
+                session: data.session,
+                verificationUrl
+            });
+        }
+
+        return res.json(result);
+
+    } catch (error: any) {
+        console.error("FATAL SIGNUP PROXY ERROR:", error);
+        return res.status(500).json({
+            error: {
+                message: error.message || "Internal Server Error",
+                code: "PROXY_ERROR"
+            }
         });
     }
 });
 
 app.post("/api/auth/login", async (req: Request, res: Response) => {
-    // Proxy to better-auth sign-in
-    const result = await auth.api.signInEmail({
-        body: req.body,
-    });
+    const result = await auth.api.signInEmail({ body: req.body });
     res.json(result);
 });
 
+// Better Auth Main Handler
 app.use("/api/auth", toNodeHandler(auth));
 
 // ================================
@@ -150,28 +146,11 @@ app.use("/api/admin", adminRouter);
 app.use("/api/reviews", reviewRouter);
 app.use("/api/users", userRouter);
 
-// ================================
-// Health Check
-// ================================
-app.get("/health", (_req: Request, res: Response) => {
-    res.status(200).send("OK");
-});
+app.get("/health", (_req, res) => res.status(200).send("OK"));
 
-// ================================
-// Root Route
-// ================================
-app.get("/", (_req: Request, res: Response) => {
-    res.send("🚀 Helio Web API is running");
-});
+app.get("/", (_req, res) => res.send("🚀 Helio Web API is running"));
 
-// ================================
-// 404 Handler (AFTER routes)
-// ================================
 app.use(notFound);
-
-// ================================
-// Global Error Handler (LAST)
-// ================================
 app.use(errorHandler);
 
 export default app;
