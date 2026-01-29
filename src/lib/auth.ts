@@ -102,15 +102,5 @@ export const auth = betterAuth({
         },
     },
 
-    // ================================
-    // Social Login
-    // ================================
-    socialProviders: {
-        google: {
-            prompt: "select_account consent",
-            accessType: "offline",
-            clientId: config.google.client_id!,
-            clientSecret: config.google.client_secret!,
-        },
-    },
+
 });

@@ -24,10 +24,7 @@ export const config = {
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: Number(process.env.SMTP_PORT) || 587,
     },
-    google: {
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
-    },
+
     allow_admin_signup: process.env.ALLOW_ADMIN_SIGNUP === "true",
 };
 
