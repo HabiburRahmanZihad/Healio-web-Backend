@@ -60,10 +60,25 @@ export const OrderService = {
         });
 
         // Filter in memory because of Json structure (items)
-        return orders.filter((order: any) => {
+        const filteredOrders = orders.filter((order: any) => {
             const items = order.items as any[];
             return items.some((item: any) => sellerMedicineIds.includes(item.medicineId));
         });
+
+        // 2. Populate medicine details for each item
+        const populatedOrders = await Promise.all(filteredOrders.map(async (order: any) => {
+            const items = order.items as any[];
+            const populatedItems = await Promise.all(items.map(async (item: any) => {
+                const medicine = await prisma.medicine.findUnique({
+                    where: { id: item.medicineId },
+                    select: { name: true, image: true }
+                });
+                return { ...item, medicine };
+            }));
+            return { ...order, items: populatedItems };
+        }));
+
+        return populatedOrders;
     },
 
     getAdminOrders: async () => {

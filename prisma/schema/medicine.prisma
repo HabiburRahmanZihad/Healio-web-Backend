@@ -6,6 +6,7 @@ model Medicine {
     stock       Int
     image       String
     manufacturer String
+    requiresPrescription Boolean @default(false) @map("requires_prescription")
     createdAt   DateTime @default(now()) @map("created_at")
 
     sellerId String @map("seller_id")

@@ -38,6 +38,22 @@ export const createMedicine = catchAsync(async (req: Request, res: Response) => 
     });
 });
 
+export const getSellerMedicines = catchAsync(async (req: Request, res: Response) => {
+    const user = req.user;
+    if (!user || user.role !== "SELLER") {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    const result = await MedicineService.getBySeller(user.id);
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Seller medicines fetched successfully",
+        data: result,
+    });
+});
+
 export const getMedicines = catchAsync(async (req: Request, res: Response) => {
     const { search, category, manufacturer, minPrice, maxPrice } = req.query;
 

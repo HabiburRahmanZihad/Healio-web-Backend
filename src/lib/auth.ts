@@ -33,6 +33,7 @@ export const auth = betterAuth({
         user: {
             create: {
                 before: async (user) => {
+                    console.log("Creating user with data:", user);
                     if (user.role === "ADMIN" && !config.allow_admin_signup) {
                         throw new Error("ADMIN signup is not allowed");
                     }
@@ -78,14 +79,14 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
         autoSignIn: false,
-        requireEmailVerification: true,
+        requireEmailVerification: false, // Temporary for debugging
     },
 
     // ================================
     // Email Verification
     // ================================
     emailVerification: {
-        sendOnSignUp: true,
+        sendOnSignUp: false, // Temporary for debugging
         autoSignInAfterVerification: true,
 
         sendVerificationEmail: async ({ user, url }) => {

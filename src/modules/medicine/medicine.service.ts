@@ -8,12 +8,23 @@ interface IBaseMedicine {
     image: string;
     manufacturer: string;
     categoryId: string;
+    requiresPrescription: boolean;
 }
 
 export const MedicineService = {
     create: async (data: IBaseMedicine & { sellerId: string }) => {
         return prisma.medicine.create({
             data,
+        });
+    },
+
+    getBySeller: async (sellerId: string) => {
+        return prisma.medicine.findMany({
+            where: { sellerId },
+            include: {
+                category: true,
+            },
+            orderBy: { createdAt: "desc" },
         });
     },
 

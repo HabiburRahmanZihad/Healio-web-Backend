@@ -4,6 +4,7 @@ import {
     deleteMedicine,
     getMedicineDetails,
     getMedicines,
+    getSellerMedicines,
     updateMedicine,
 } from "./medicine.controller";
 import authMiddleware, { UserRole } from "../../middleware/authentication";
@@ -21,6 +22,7 @@ router.delete("/:id", authMiddleware(UserRole.SELLER), deleteMedicine);
 
 // Seller specific routes (to be mounted at /api/seller/medicines)
 export const sellerMedicineRouter = Router();
+sellerMedicineRouter.get("/", authMiddleware(UserRole.SELLER), getSellerMedicines);
 sellerMedicineRouter.post("/", authMiddleware(UserRole.SELLER), createMedicine);
 sellerMedicineRouter.put("/:id", authMiddleware(UserRole.SELLER), updateMedicine);
 sellerMedicineRouter.delete("/:id", authMiddleware(UserRole.SELLER), deleteMedicine);
