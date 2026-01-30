@@ -41,16 +41,15 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 | **MEDICINES** | | | |
 | `GET` | `/api/medicines` | Query medicines (search/filter) | Public |
 | `GET` | `/api/medicines/:id` | Get detailed medicine info | Public |
-| `POST` | `/api/seller/medicines` | Add new inventory items | Seller |
-| `PUT` | `/api/seller/medicines/:id` | Update stock/price/details | Seller (Own) |
-| `DELETE` | `/api/seller/medicines/:id`| Remove inventory items | Seller (Own) |
+| `GET` | `/api/medicines/seller/all`| Get all seller's medicines | Seller |
+| `POST` | `/api/medicines` | Add new inventory items | Seller |
+| `PATCH` | `/api/medicines/:id` | Update stock/price/details | Seller (Own) |
+| `DELETE` | `/api/medicines/:id`| Remove inventory items | Seller (Own) |
 | **ORDERS** | | | |
 | `POST` | `/api/orders` | Checkout and place order | Customer |
-| `GET` | `/api/seller/orders` | Get seller's orders | Seller |
 | `GET` | `/api/orders` | View order history | Auth (Role based) |
 | `GET` | `/api/orders/:id` | View specific order details | Auth |
-| `PATCH` | `/api/seller/orders/:id`| Update order status | Seller |
-| `PATCH` | `/api/orders/:id/status`| Update delivery status (Admin) | Admin |
+| `PATCH` | `/api/orders/:id/status`| Update order status | Seller/Admin |
 | `PATCH` | `/api/orders/:id/cancel`| Cancel a pending order | Customer (Own) |
 | `GET` | `/api/orders/seller/stats`| View sales analytics | Seller |
 | **REVIEWS** | | | |
@@ -158,7 +157,7 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ```
 
 ### 8. Create Medicine (Seller)
-- **URL**: `/api/seller/medicines`
+- **URL**: `/api/medicines`
 - **Method**: `POST`
 - **Body**:
 ```json
@@ -174,12 +173,12 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ```
 
 ### 9. Update Medicine (Seller - Own Only)
-- **URL**: `/api/seller/medicines/:id`
-- **Method**: `PUT`
+- **URL**: `/api/medicines/:id`
+- **Method**: `PATCH`
 - **Body**: `{"price": 16.0, "stock": 450}`
 
 ### 10. Delete Medicine (Seller - Own Only)
-- **URL**: `/api/seller/medicines/:id`
+- **URL**: `/api/medicines/:id`
 - **Method**: `DELETE`
 
 ---
@@ -228,28 +227,14 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 ```
 
 ### 14. Get Seller Orders (Seller)
-- **URL**: `/api/seller/orders`
+- **URL**: `/api/orders`
 - **Method**: `GET`
-- **Sample Response**:
-```json
-{
-  "success": true,
-  "message": "Orders fetched successfully",
-  "data": [
-    { "id": "...", "status": "PLACED", "totalPrice": 100 }
-  ]
-}
-```
+- *Note*: Customers see their own, Sellers see orders for their medicines, Admins see all.
 
-### 15. Update Order Status (Seller Only)
-- **URL**: `/api/seller/orders/:id`
-- **Method**: `PATCH`
-- **Body**: `{"status": "SHIPPED"}` // Options: PLACED, SHIPPED, DELIVERED, CANCELLED
-
-### 16. Admin Update Status (Admin)
+### 15. Update Order Status (Seller/Admin)
 - **URL**: `/api/orders/:id/status`
 - **Method**: `PATCH`
-- **Body**: `{"status": "DELIVERED"}`
+- **Body**: `{"status": "SHIPPED"}` // Options: PLACED, SHIPPED, DELIVERED, CANCELLED
 
 ### 17. Cancel Order (Customer - Own Only)
 - **URL**: `/api/orders/:id/cancel`
@@ -433,11 +418,12 @@ This guide provides a comprehensive breakdown of every API endpoint in the **Hel
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/auth/me` | Fetch active session & role |
-| `POST` | `/api/seller/medicines` | Add new medicine to inventory |
-| `PUT` | `/api/seller/medicines/:id` | Update your medicine details |
-| `DELETE` | `/api/seller/medicines/:id`| Remove your medicine |
-| `GET` | `/api/seller/orders` | Get orders for your products |
-| `PATCH` | `/api/seller/orders/:id`| Update order status (SHIPPED, etc.) |
+| `GET` | `/api/medicines/seller/all`| Get all your medicines |
+| `POST` | `/api/medicines` | Add new medicine |
+| `PATCH` | `/api/medicines/:id` | Update your medicine details |
+| `DELETE` | `/api/medicines/:id`| Remove your medicine |
+| `GET` | `/api/orders` | Get orders for your products |
+| `PATCH` | `/api/orders/:id/status`| Update order status |
 | `GET` | `/api/orders/seller/stats`| View sales & revenue analytics |
 
 ### 🛡️ Admin Endpoints
