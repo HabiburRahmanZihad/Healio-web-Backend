@@ -1,135 +1,118 @@
 <div align="center">
-  <img src="https://img.icons8.com/plasticine/200/hospital.png" alt="Healio Logo" width="120" />
-  <h1>💊 HealiO</h1>
-  <p><strong>The Ultimate Healthcare E-commerce Engine</strong></p>
+  <img src="../Frontend/public/Healio_logo_png.png" alt="Healio Logo" width="180" />
+  <h1>⚙️ HEALIO BACKEND</h1>
+  <p><strong>The High-Performance Core Engine for Modern Healthcare</strong></p>
 
-  [![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)](https://www.prisma.io/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-  [![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)](https://expressjs.com/)
-  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-  [![Better Auth](https://img.shields.io/badge/Better--Auth-FF4154?style=for-the-badge)](https://better-auth.com/)
+  <p>
+    <img src="https://img.shields.io/badge/Node.js-18.x-43853D?style=for-the-badge&logo=node.js" alt="Node.js" />
+    <img src="https://img.shields.io/badge/Express.js-5.0-black?style=for-the-badge&logo=express" alt="Express.js" />
+    <img src="https://img.shields.io/badge/Prisma-7.3.0-2D3748?style=for-the-badge&logo=prisma" alt="Prisma" />
+    <img src="https://img.shields.io/badge/PostgreSQL-16.x-316192?style=for-the-badge&logo=postgresql" alt="PostgreSQL" />
+    <img src="https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
+  </p>
 </div>
 
 ---
 
 ## ⚡ Overview
 
+The **Healio Backend** is an enterprise-ready healthcare e-commerce engine designed for speed, security, and scalability. It serves as the "System Core" for the Healio Nexus, handling mission-critical health data, complex order fulfillment, and multi-role access control.
+
 > [!TIP]
-> For test APIs, go to [POSTMAN_TESTING](POSTMAN_TESTING.md)
+> For interactive API exploration, refer to our [Postman Testing Guide](POSTMAN_TESTING.md).
 
-**Healio** is a high-performance, enterprise-ready healthcare e-commerce backend. It's designed with a modular architecture to handle complex medicine inventories, secure user roles, and seamless order fulfillment.
+---
 
-> [!IMPORTANT]
-> This repository contains the **Core Backend Engine**. Check the frontend repository for the User Interface.
+## 🛡️ Technical Architecture
 
-## 🛠️ The Tech Stack (Boss Level)
+Healio uses a modular, role-based architecture to ensure relational integrity and high availability.
 
-| Layer | Technology | Why we used it? |
+### 🛠️ The Tech Stack
+| Layer | technology | Rationale |
 | :--- | :--- | :--- |
-| **Runtime** | `Node.js` | Industry-standard async I/O. |
-| **Language** | `TypeScript` | Type safety for mission-critical health data. |
-| **Framework** | `Express.js (v5)` | Latest features and improved error handling. |
+| **Logic** | `Express.js (v5)` | Fast, minimalist, and robust request handling. |
+| **Database** | `PostgreSQL` | Relational consistency for healthcare inventories. |
 | **ORM** | `Prisma` | Type-safe migrations and intuitive data modeling. |
-| **Database** | `PostgreSQL` | Relational integrity for orders and inventory. |
-| **Security** | `Better-Auth` | Modern authentication with OAuth support. |
-| **Notifier** | `Nodemailer` | Reliable transactional email delivery. |
+| **Auth** | `Better-Auth` | Modern, secure authentication with multi-provider support. |
+| **Mailer** | `Nodemailer` | Reliable transactional email delivery for system alerts. |
+| **Validation** | `Zod` | Schema-driven data validation for zero-compromise security. |
 
-## 🚀 Key Features
+---
 
-- 🛡️ **Role-Based Access Control (RBAC)**: Fine-grained permissions for `CUSTOMER`, `SELLER`, and `ADMIN`.
-- 🔑 **Multi-Provider Auth**: Secure login via Email/Password or **Google OAuth**.
-- 📦 **Inventory Management**: Real-time stock tracking and manufacturer auditing.
-- 🛒 **Dynamic Order System**: Persistent cart data and status tracking (Placed → Delivered).
-- 💬 **User Feedback Loop**: Integrated Rating & Review system for product quality assurance.
-- 🏗️ **Robust Architecture**: Modular folder structure for scalability.
+## 🚀 Key Modules & Features
 
-## 📊 Database Architecture
+### 🔐 System Security (RBAC)
+- **Granular Permissions**: Fine-grained access control for `ADMIN`, `SELLER`, and `CUSTOMER`.
+- **Session Intelligence**: Secure session management with automated refresh protocols.
+- **Identity Link**: Cross-node identity verification via Better-Auth.
 
-Our schema is optimized for relational performance and extensibility.
+### 📦 Pharmaceutical Inventory Matrix
+- **Audited Listings**: Real-time stock tracking with manufacturer and category auditing.
+- **Flash Sale Logic**: Specialized pricing overrides for synchronized sales events.
+- **Category Hierarchy**: Recursive category management for complex medicine taxonomies.
 
-👉 **[Healio ERD Visualizer](https://dbdiagram.io/d/Healio-Assignment-4-Programming-Hero-69785e4bbd82f5fce2b5acdb)**
+### 🛒 Fiscal & Order Protocols
+- **Transaction Integrity**: ACID-compliant order processing via PostgreSQL transactions.
+- **Lifecycle Tracking**: Precise order status management (Placed → Processing → Shipped → Delivered).
+- **Revenue Analytics**: Real-time aggregation of fiscal data for Admin Command Center.
+
+---
+
+## 📊 Data Modeling (Mermaid)
 
 ```mermaid
 erDiagram
-    USER ||--o{ MEDICINE : sells
+    USER ||--o{ MEDICINE : manages
     USER ||--o{ ORDER : places
     USER ||--o{ REVIEW : writes
     CATEGORY ||--o{ MEDICINE : contains
     MEDICINE ||--o{ REVIEW : receives
+    MEDICINE ||--o{ ORDER_ITEM : included_in
+    ORDER ||--o{ ORDER_ITEM : contains
 ```
 
-## ⚙️ Quick Start
+---
+
+## 📂 System Structure
+```text
+src/
+├── app.ts          # Core application configuration
+├── server.ts       # Main entry point & port binding
+├── config/         # Environment & System constants
+├── controllers/    # Request processing & signal logic
+├── middlewares/    # Security & Validation guards
+├── modules/        # Feature-specific business logic
+├── lib/            # Shared libraries (Prisma Node, Auth Node)
+└── scripts/        # Seeding & Maintenance automation
+```
+
+---
+
+## ⚙️ Deployment & Scaling
 
 ### 1. Prerequisites
-- Node.js 18+
-- PostgreSQL Instance
+- Node.js 18+ & npm/pnpm
+- PostgreSQL Instance (Local or Cloud)
 
-### 2. Installation & Setup
+### 2. Ignition Flow
 ```bash
-# Clone and enter
-git clone https://github.com/HabiburRahmanZihad/Healio-web-Backend.git
-cd Healio-web-Backend
-
-# Install dependencies
-npm install
-
-# Setup Environment
-cp .env.example .env # Then fill in your secrets
+npm install                     # Install dependencies
+cp .env.example .env            # Configure environmental variables
+npx prisma migrate dev          # Sync database schema
+npm run dev                     # Start development engine
 ```
 
-### 3. Database Sync
+### 3. Production Seeding
+To initialize the system with an administrative account:
 ```bash
-npx prisma migrate dev
-```
-
-### 4. Ignite the Server
-```bash
-# Production Mode
-npm start
-
-# Developer Mode (with reload)
-npm run dev
-
-# Seed Admin (Production)
-# Note: Ensure ALLOW_ADMIN_SIGNUP=true and NODE_ENV=production
+# Ensure ALLOW_ADMIN_SIGNUP=true in .env
 npm run seed:admin
 ```
 
-## 📖 API Documentation
-
-For a comprehensive list of all endpoints, including request examples and role-based access, please refer to our testing guide:
-
-👉 **[Postman API Testing Guide](POSTMAN_TESTING.md)**
-
-## 🏗️ Project Structure
-```text
-src/
-├── config/         # Centralized Environment Config
-├── controllers/    # Request handling logic
-├── lib/            # Shared libraries (Prisma, Auth)
-├── middlewares/    # Auth & validation guards
-├── modules/        # Feature-based modular logic
-├── scripts/        # Seeding & maintenance tools
-└── server.ts       # Application entry point
-```
-
-## 🛠️ Maintenance: Seeding Admin in Production
-
-If you are deploying for the first time, you must seed the initial admin user.
-
-1. Set `ALLOW_ADMIN_SIGNUP=true` in your environment.
-2. Ensure `NODE_ENV=production` is set (to enable SSL for remote DBs).
-3. Run: `npm run seed:admin`
-
-## 🤝 Contribution
-1. Fork the repo.
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`).
-4. Push to the Branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
-
 ---
-<div align="center">
-  Built with precision by <strong><a href="https://github.com/HabiburRahmanZihad">Habibur Rahman Zihad</a></strong>
-</div>
+
+## 📄 License & Creator
+
+Developed with 💎 Precision & ❤️ Care by **[Habibur Rahman Zihad](https://habibur-rahman-zihad.vercel.app/)**
+
+*Licensed under the ISC License. All rights reserved.*
