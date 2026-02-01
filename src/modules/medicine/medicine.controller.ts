@@ -44,18 +44,25 @@ export const getSellerMedicines = catchAsync(async (req: Request, res: Response)
         return res.status(403).json({ success: false, message: "Forbidden" });
     }
 
-    const result = await MedicineService.getBySeller(user.id);
+    const { search, page, limit } = req.query;
+
+    const result = await MedicineService.getBySeller(user.id, {
+        search: search as string,
+        page: page ? parseInt(page as string) : 1,
+        limit: limit ? parseInt(limit as string) : 10,
+    });
 
     sendResponse(res, {
         statusCode: 200,
         success: true,
         message: "Seller medicines fetched successfully",
-        data: result,
+        meta: result.meta,
+        data: result.data,
     });
 });
 
 export const getMedicines = catchAsync(async (req: Request, res: Response) => {
-    const { search, category, manufacturer, minPrice, maxPrice } = req.query;
+    const { search, category, manufacturer, minPrice, maxPrice, page, limit } = req.query;
 
     const result = await MedicineService.getAll({
         search: search ? (search as string) : undefined,
@@ -63,13 +70,16 @@ export const getMedicines = catchAsync(async (req: Request, res: Response) => {
         manufacturer: manufacturer ? (manufacturer as string) : undefined,
         minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
         maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined,
+        page: page ? parseInt(page as string) : 1,
+        limit: limit ? parseInt(limit as string) : 10,
     });
 
     sendResponse(res, {
         statusCode: 200,
         success: true,
         message: "Medicines fetched successfully",
-        data: result,
+        meta: result.meta,
+        data: result.data,
     });
 });
 

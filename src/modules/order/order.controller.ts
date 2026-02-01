@@ -28,20 +28,28 @@ export const getMyOrders = catchAsync(async (req: Request, res: Response) => {
         return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
+    const { search, page, limit } = req.query;
+    const filter = {
+        search: search as string,
+        page: page ? parseInt(page as string) : 1,
+        limit: limit ? parseInt(limit as string) : 10,
+    };
+
     let result;
     if (user.role === "CUSTOMER") {
-        result = await OrderService.getCustomerOrders(user.id);
+        result = await OrderService.getCustomerOrders(user.id, filter);
     } else if (user.role === "SELLER") {
-        result = await OrderService.getSellerOrders(user.id);
+        result = await OrderService.getSellerOrders(user.id, filter);
     } else {
-        result = await OrderService.getAdminOrders();
+        result = await OrderService.getAdminOrders(filter);
     }
 
     sendResponse(res, {
         statusCode: 200,
         success: true,
         message: "Orders fetched successfully",
-        data: result,
+        meta: result.meta,
+        data: result.data,
     });
 });
 

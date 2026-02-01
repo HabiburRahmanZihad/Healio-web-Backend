@@ -18,14 +18,49 @@ export const MedicineService = {
         });
     },
 
-    getBySeller: async (sellerId: string) => {
-        return prisma.medicine.findMany({
-            where: { sellerId },
-            include: {
-                category: true,
+    getBySeller: async (
+        sellerId: string,
+        filter: {
+            search?: string | undefined;
+            page?: number;
+            limit?: number;
+        }
+    ) => {
+        const { search, page = 1, limit = 10 } = filter;
+        const skip = (page - 1) * limit;
+        const take = limit;
+
+        const where: any = { sellerId };
+
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: "insensitive" } },
+                { manufacturer: { contains: search, mode: "insensitive" } },
+            ];
+        }
+
+        const [data, total] = await Promise.all([
+            prisma.medicine.findMany({
+                where,
+                include: {
+                    category: true,
+                },
+                orderBy: { createdAt: "desc" },
+                skip,
+                take,
+            }),
+            prisma.medicine.count({ where }),
+        ]);
+
+        return {
+            meta: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
             },
-            orderBy: { createdAt: "desc" },
-        });
+            data,
+        };
     },
 
     getAll: async (filter: {
@@ -34,8 +69,13 @@ export const MedicineService = {
         manufacturer?: string | undefined;
         minPrice?: number | undefined;
         maxPrice?: number | undefined;
+        page?: number;
+        limit?: number;
     }) => {
-        const { search, category, manufacturer, minPrice, maxPrice } = filter;
+        const { search, category, manufacturer, minPrice, maxPrice, page = 1, limit = 10 } = filter;
+
+        const skip = (page - 1) * limit;
+        const take = limit;
 
         const where: any = {};
 
@@ -62,19 +102,34 @@ export const MedicineService = {
             };
         }
 
-        return prisma.medicine.findMany({
-            where,
-            include: {
-                category: true,
-                seller: {
-                    select: {
-                        id: true,
-                        name: true,
+        const [data, total] = await Promise.all([
+            prisma.medicine.findMany({
+                where,
+                include: {
+                    category: true,
+                    seller: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
                     },
                 },
+                orderBy: { createdAt: "desc" },
+                skip,
+                take,
+            }),
+            prisma.medicine.count({ where }),
+        ]);
+
+        return {
+            meta: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
             },
-            orderBy: { createdAt: "desc" },
-        });
+            data,
+        };
     },
 
     getById: async (id: string) => {

@@ -30,14 +30,39 @@ export const OrderService = {
         });
     },
 
-    getCustomerOrders: async (customerId: string) => {
-        return prisma.order.findMany({
-            where: { customerId },
-            orderBy: { createdAt: "desc" },
-        });
+    getCustomerOrders: async (customerId: string, filter: { page?: number; limit?: number } = {}) => {
+        const { page = 1, limit = 10 } = filter;
+        const skip = (page - 1) * limit;
+        const take = limit;
+
+        const where = { customerId };
+
+        const [data, total] = await Promise.all([
+            prisma.order.findMany({
+                where,
+                include: {
+                    customer: {
+                        select: { id: true, name: true, email: true },
+                    },
+                },
+                orderBy: { createdAt: "desc" },
+                skip,
+                take,
+            }),
+            prisma.order.count({ where }),
+        ]);
+
+        return {
+            meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+            data,
+        };
     },
 
-    getSellerOrders: async (sellerId: string) => {
+    getSellerOrders: async (sellerId: string, filter: { search?: string; page?: number; limit?: number } = {}) => {
+        const { search, page = 1, limit = 10 } = filter;
+        const skip = (page - 1) * limit;
+        const take = limit;
+
         // Find medicines owned by this seller
         const sellerMedicines = await prisma.medicine.findMany({
             where: { sellerId },
@@ -45,12 +70,26 @@ export const OrderService = {
         });
         const sellerMedicineIds = sellerMedicines.map((m: any) => m.id);
 
-        if (sellerMedicineIds.length === 0) return [];
+        if (sellerMedicineIds.length === 0) return { meta: { page, limit, total: 0, totalPages: 0 }, data: [] };
 
-        // Find orders that contain at least one of these medicines
-        // Note: In a production app, you might want to only return the items belonging to the seller,
-        // but here we return the whole order if it contains their medicine.
+        const where: any = {};
+        if (search) {
+            where.OR = [
+                { id: { contains: search, mode: "insensitive" } },
+                { customer: { name: { contains: search, mode: "insensitive" } } },
+                { customer: { email: { contains: search, mode: "insensitive" } } },
+            ];
+        }
+
+        // Complex filter: Order must contain seller's medicine
+        // Since "items" is JSON, we can't easily filter in SQL for "contains any of these medicineIds"
+        // However, we can use the "items" field with path-based filtering if supported, 
+        // but for simplicity and compatibility, we'll fetch all and filter, or use a better schema.
+        // Given the constraints, I'll stick to a slightly more efficient fetch if possible.
+
+        // For now, let's fetch orders that match the search first
         const orders = await prisma.order.findMany({
+            where,
             orderBy: { createdAt: "desc" },
             include: {
                 customer: {
@@ -59,14 +98,17 @@ export const OrderService = {
             },
         });
 
-        // Filter in memory because of Json structure (items)
-        const filteredOrders = orders.filter((order: any) => {
+        // Filter by seller ownership
+        const sellerOrders = orders.filter((order: any) => {
             const items = order.items as any[];
             return items.some((item: any) => sellerMedicineIds.includes(item.medicineId));
         });
 
-        // 2. Populate medicine details for each item
-        const populatedOrders = await Promise.all(filteredOrders.map(async (order: any) => {
+        const total = sellerOrders.length;
+        const paginatedData = sellerOrders.slice(skip, skip + take);
+
+        // Populate medicine details
+        const populatedData = await Promise.all(paginatedData.map(async (order: any) => {
             const items = order.items as any[];
             const populatedItems = await Promise.all(items.map(async (item: any) => {
                 const medicine = await prisma.medicine.findUnique({
@@ -78,18 +120,46 @@ export const OrderService = {
             return { ...order, items: populatedItems };
         }));
 
-        return populatedOrders;
+        return {
+            meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+            data: populatedData,
+        };
     },
 
-    getAdminOrders: async () => {
-        return prisma.order.findMany({
-            include: {
-                customer: {
-                    select: { id: true, name: true, email: true },
+    getAdminOrders: async (filter: { search?: string; page?: number; limit?: number } = {}) => {
+        const { search, page = 1, limit = 10 } = filter;
+        const skip = (page - 1) * limit;
+        const take = limit;
+
+        const where: any = {};
+
+        if (search) {
+            where.OR = [
+                { id: { contains: search, mode: "insensitive" } },
+                { customer: { name: { contains: search, mode: "insensitive" } } },
+                { customer: { email: { contains: search, mode: "insensitive" } } },
+            ];
+        }
+
+        const [data, total] = await Promise.all([
+            prisma.order.findMany({
+                where,
+                include: {
+                    customer: {
+                        select: { id: true, name: true, email: true },
+                    },
                 },
-            },
-            orderBy: { createdAt: "desc" },
-        });
+                orderBy: { createdAt: "desc" },
+                skip,
+                take,
+            }),
+            prisma.order.count({ where }),
+        ]);
+
+        return {
+            meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+            data,
+        };
     },
 
     getById: async (id: string) => {
