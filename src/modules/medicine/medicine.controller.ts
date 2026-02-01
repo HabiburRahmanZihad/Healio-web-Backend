@@ -100,7 +100,20 @@ export const updateMedicine = catchAsync(async (req: Request, res: Response) => 
         return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
-    const result = await MedicineService.update(id, user.id, req.body);
+    // Filter body to only include allowed fields
+    const { name, description, price, stock, image, manufacturer, categoryId, requiresPrescription } = req.body;
+    const updateData: any = {};
+
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) updateData.price = price;
+    if (stock !== undefined) updateData.stock = stock;
+    if (image !== undefined) updateData.image = image;
+    if (manufacturer !== undefined) updateData.manufacturer = manufacturer;
+    if (categoryId !== undefined) updateData.categoryId = categoryId;
+    if (requiresPrescription !== undefined) updateData.requiresPrescription = requiresPrescription;
+
+    const result = await MedicineService.update(id, user.id, updateData);
 
     sendResponse(res, {
         statusCode: 200,

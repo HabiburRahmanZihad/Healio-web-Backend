@@ -11,12 +11,14 @@ import authMiddleware, { UserRole } from "../../middleware/authentication";
 
 const router = Router();
 
+// Specific seller routes first
+router.get("/seller/all", authMiddleware(UserRole.SELLER), getSellerMedicines);
+
 // Public routes
 router.get("/", getMedicines);
 router.get("/:id", getMedicineDetails);
 
-// Seller routes
-router.get("/seller/all", authMiddleware(UserRole.SELLER), getSellerMedicines);
+// Parametric seller routes (PATCH/DELETE)
 router.post("/", authMiddleware(UserRole.SELLER), createMedicine);
 router.patch("/:id", authMiddleware(UserRole.SELLER), updateMedicine);
 router.delete("/:id", authMiddleware(UserRole.SELLER), deleteMedicine);

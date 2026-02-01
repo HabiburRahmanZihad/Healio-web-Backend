@@ -127,8 +127,12 @@ export const MedicineService = {
             where: { id },
         });
 
-        if (!existing || existing.sellerId !== sellerId) {
-            throw new Error("Medicine not found or unauthorized");
+        if (!existing) {
+            throw new Error("Medicine not found");
+        }
+
+        if (existing.sellerId !== sellerId) {
+            throw new Error("Unauthorized: You do not own this medicine");
         }
 
         return prisma.medicine.update({
@@ -143,8 +147,12 @@ export const MedicineService = {
             where: { id },
         });
 
-        if (!existing || existing.sellerId !== sellerId) {
-            throw new Error("Medicine not found or unauthorized");
+        if (!existing) {
+            throw new Error("Medicine not found");
+        }
+
+        if (existing.sellerId !== sellerId) {
+            throw new Error("Unauthorized: You do not own this medicine");
         }
 
         return prisma.medicine.delete({
