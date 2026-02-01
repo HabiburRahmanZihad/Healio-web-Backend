@@ -18,4 +18,11 @@ export const CategoryService = {
             where: { id },
         });
     },
+
+    update: async (id: string, name: string) => {
+        return prisma.category.update({
+            where: { id },
+            data: { name },
+        });
+    },
 };

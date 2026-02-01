@@ -40,3 +40,21 @@ export const deleteCategory = catchAsync(async (req: Request, res: Response) => 
         data: null,
     });
 });
+
+export const updateCategory = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    if (!id || !name) {
+        return res.status(400).json({ message: "Category ID and name are required" });
+    }
+
+    const result = await CategoryService.update(id, name);
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Category updated successfully",
+        data: result,
+    });
+});
