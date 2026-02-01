@@ -11,12 +11,12 @@ model User {
     sessions Session[]
     accounts Account[]
 
-    // MediStore fields
+    // Healio fields
     role      String  @default("CUSTOMER") // CUSTOMER, SELLER, ADMIN
     phone     String?
     isBlocked Boolean @default(false) @map("is_blocked")
 
-    // MediStore relations
+    // Healio relations
     medicines Medicine[]
     orders    Order[]
     reviews   Review[]

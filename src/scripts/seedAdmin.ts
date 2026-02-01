@@ -28,7 +28,7 @@ async function seedAdmin() {
             body: {
                 email: adminEmail,
                 password: adminPassword,
-                name: "MediStore Admin",
+                name: "Healio Admin",
                 role: "ADMIN",
                 isBlocked: false,
             },
