@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/Healio_logo_png.png" alt="Healio Logo" width="200"/>
+    <img src="public/Healio_logo_png.png" alt="Healio Logo" width="220" />
   <h1>HEALIO PROPRIETARY LICENSE (BACKEND)</h1>
   <p><strong>Copyright &copy; 2026 Habibur Rahman Zihad. All rights reserved.</strong></p>
 </div>

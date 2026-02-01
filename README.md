@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../Frontend/public/Healio_logo_png.png" alt="Healio Logo" width="180" />
+    <img src="public/Healio_logo_png.png" alt="Healio Logo" width="220" />
   <h1>⚙️ HEALIO BACKEND</h1>
   <p><strong>The High-Performance Core Engine for Modern Healthcare</strong></p>
 
