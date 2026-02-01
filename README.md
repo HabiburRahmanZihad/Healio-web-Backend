@@ -60,6 +60,9 @@ Healio uses a modular, role-based architecture to ensure relational integrity an
 
 ## 📊 Data Modeling (Mermaid)
 
+> [!NOTE]
+> View the [Interactive ERD](https://dbdiagram.io/d/Healio-Assignment-4-Programming-Hero-69785e4bbd82f5fce2b5acdb) for a detailed relational overview.
+
 ```mermaid
 erDiagram
     USER ||--o{ MEDICINE : manages
