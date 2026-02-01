@@ -24,6 +24,18 @@ export const ReviewService = {
             throw new Error("You can only review medicines you have purchased and received.");
         }
 
+        // Check if user has already reviewed this medicine
+        const existingReview = await prisma.review.findFirst({
+            where: {
+                userId: data.userId,
+                medicineId: data.medicineId,
+            },
+        });
+
+        if (existingReview) {
+            throw new Error("You have already reviewed this medicine.");
+        }
+
         return prisma.review.create({
             data,
             include: {
